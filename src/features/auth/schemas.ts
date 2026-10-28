@@ -8,7 +8,8 @@ export const loginSchema = z.object({
 export const registerSchema = z
   .object({
     email: z.string().min(1, "Enter your email").email("That doesn't look like an email"),
-    password: z.string().min(8, "Use at least 8 characters"),
+    // API requires minLength 10
+    password: z.string().min(10, "Use at least 10 characters"),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {

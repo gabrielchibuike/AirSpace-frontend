@@ -314,3 +314,47 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Mobile Enhancements ─────────────────────────────────────── */
+
+/* Remove iOS tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+  /* Support iOS safe areas (notch / home bar) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Minimum tap target size for interactive elements */
+button,
+a,
+[role="button"],
+input[type="radio"],
+label {
+  min-height: 44px;
+}
+
+/* Override for inline / tight elements like nav pills */
+.tap-tight {
+  min-height: unset;
+}
+
+/* Prevent text selection on UI elements */
+nav, header {
+  user-select: none;
+}
+
+/* Full-width inputs on mobile */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    font-size: 16px; /* Prevents iOS auto-zoom */
+  }
+}

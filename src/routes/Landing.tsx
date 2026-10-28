@@ -1,73 +1,280 @@
 import { Link } from "react-router-dom"
-import { SupportDialog } from "@/components/SupportDialog"
+import { LuPenLine, LuSparkles, LuActivity, LuLock, LuTrash2, LuShieldCheck } from "react-icons/lu"
+import { CrisisDialog } from "@/components/CrisisDialog"
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-svh flex-col">
-      {/* Hero */}
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-8 px-4 py-20 text-center">
-        <h1 className="font-heading text-4xl font-light leading-tight tracking-wide sm:text-5xl">
+    <div className="flex min-h-svh flex-col bg-background">
+      {/* ── Nav ─────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-sm">
+        <nav
+          aria-label="Main"
+          className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-3"
+        >
+          <span className="mr-auto flex flex-col leading-none">
+            <span className="font-heading text-base font-semibold tracking-tight text-primary">
+              AirSpace
+            </span>
+            <span className="text-[10px] tracking-widest text-muted-foreground uppercase">
+              Vent and Decompress
+            </span>
+          </span>
+          <a
+            href="#how-it-works"
+            className="hidden text-sm text-muted-foreground hover:text-foreground transition-colors sm:inline"
+          >
+            How It Works
+          </a>
+          <a
+            href="#privacy"
+            className="hidden text-sm text-muted-foreground hover:text-foreground transition-colors sm:inline"
+          >
+            Privacy Guarantee
+          </a>
+          <CrisisDialog
+            trigger={
+              <button className="hidden text-sm text-muted-foreground hover:text-foreground transition-colors sm:inline">
+                Support Resources
+              </button>
+            }
+          />
+          <Link
+            to="/login"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Log In
+          </Link>
+          <Link
+            to="/register"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+          >
+            <span className="hidden sm:inline">Start airing it out</span>
+            <span className="sm:hidden">Get started</span>
+          </Link>
+        </nav>
+      </header>
+
+      {/* ── Hero ────────────────────────────────────────────────────── */}
+      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center sm:gap-8 sm:py-20">
+        {/* Badge */}
+        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          · Vent and Decompress
+        </span>
+
+        <h1 className="font-heading text-3xl font-light leading-tight tracking-wide text-foreground sm:text-5xl">
           A private space to get it out.
         </h1>
-        <p className="max-w-lg text-lg text-muted-foreground">
-          Write what&apos;s on your mind, get a gentle reflection, and notice how you feel before and after.
+        <p className="max-w-lg text-base text-muted-foreground leading-relaxed sm:text-lg">
+          Write what&apos;s on your mind, get a gentle reflection, and notice how you feel before
+          and after. An unhurried sanctuary built for mental stillness.
         </p>
+
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link
             to="/register"
-            className="inline-flex h-11 min-w-44 items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            Start airing it out
+            Start airing it out →
           </Link>
           <Link
             to="/login"
-            className="inline-flex h-11 min-w-28 items-center justify-center rounded-lg px-6 text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex h-11 min-w-24 items-center justify-center rounded-lg px-6 text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Log in
           </Link>
         </div>
-      </main>
 
-      {/* Feature cards */}
+        {/* Privacy badge */}
+        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+          <LuLock className="h-3.5 w-3.5" aria-hidden />
+          Only you can see this. No ads, no public feed, no streaks.
+        </p>
+      </section>
+
+      {/* ── How It Works ────────────────────────────────────────────── */}
       <section
-        aria-labelledby="features-heading"
-        className="bg-secondary/50 px-4 py-16"
+        id="how-it-works"
+        aria-labelledby="how-heading"
+        className="bg-secondary/40 px-4 py-20"
       >
-        <h2 id="features-heading" className="sr-only">How it works</h2>
-        <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-3">
-          <div className="rounded-2xl border bg-card p-6 shadow-sm">
-            <h3 className="mb-2 font-heading text-lg">Air It Out</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Write freely, without judgment. Your words are private and only ever visible to you.
-            </p>
-          </div>
-          <div className="rounded-2xl border bg-card p-6 shadow-sm">
-            <h3 className="mb-2 font-heading text-lg">Decompress &amp; Reframe</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Ask for a gentle AI-assisted reflection on your words. It never rewrites or edits what you wrote.
-            </p>
-          </div>
-          <div className="rounded-2xl border bg-card p-6 shadow-sm">
-            <h3 className="mb-2 font-heading text-lg">Track Your Reset</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Check in on how you feel before and after. Notice the shift, without needing to analyse it.
-            </p>
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Three-Stage Sequence
+          </p>
+          <h2 id="how-heading" className="mb-4 text-3xl font-light tracking-wide text-foreground">
+            A quiet ritual to clear your mind.
+          </h2>
+          <p className="mb-12 text-muted-foreground">
+            No dopamine loops, no social validation, and no judgment. Just a seamless, private
+            rhythm to process what is spinning.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                step: "Step 01",
+                icon: <LuPenLine className="h-5 w-5" aria-hidden />,
+                title: "Air It Out",
+                subtitle: "Write freely, without judgment",
+                body: "Type whatever is churning inside without worry over punctuation, structure, or composure. An uncluttered white canvas designed solely to help you unload.",
+                note: "Zero external space sharing",
+              },
+              {
+                step: "Step 02",
+                icon: <LuSparkles className="h-5 w-5" aria-hidden />,
+                title: "Decompress & Reframe",
+                subtitle: "A gentle reflection on your words",
+                body: "Receive an empathetic, objective perspective that mirrors your feelings back without lecturing, diagnosing, or telling you what you \u2018should\u2019 do.",
+                note: "Neutral, grounding perspective",
+              },
+              {
+                step: "Step 03",
+                icon: <LuActivity className="h-5 w-5" aria-hidden />,
+                title: "Track Your Reset",
+                subtitle: "See how you feel before and after",
+                body: "Check in with your nervous system on a quiet 5-point scale before writing and after reading. No streaks, no gamified badges, and zero guilt for skipping days.",
+                note: "Self-awareness, not metrics",
+              },
+            ].map((item) => (
+              <article
+                key={item.step}
+                className="rounded-2xl border bg-card p-6 shadow-sm text-left"
+              >
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  {item.step}
+                </p>
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary">
+                  {item.icon}
+                </div>
+                <h3 className="mb-1 font-heading text-lg font-medium text-foreground">
+                  {item.title}
+                </h3>
+                <p className="mb-2 text-sm font-medium text-primary">{item.subtitle}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
+                <p className="mt-4 text-xs text-muted-foreground">{item.note}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Privacy strip */}
-      <section className="border-t px-4 py-12">
-        <ul className="mx-auto flex max-w-2xl flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:justify-around">
-          <li>Only you can see your entries</li>
-          <li>Delete any session or your whole account, anytime</li>
-          <li>The AI never changes your words</li>
-        </ul>
+      {/* ── Privacy Guarantee ───────────────────────────────────────── */}
+      <section
+        id="privacy"
+        aria-labelledby="privacy-heading"
+        className="px-4 py-20"
+      >
+        <div className="mx-auto max-w-3xl rounded-2xl border bg-card p-8 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Radical Confidentiality
+              </p>
+              <h2
+                id="privacy-heading"
+                className="text-2xl font-light tracking-wide text-foreground"
+              >
+                Your thoughts belong only to you.
+              </h2>
+            </div>
+            <span className="flex items-center gap-1.5 rounded-full border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground">
+              <LuShieldCheck className="h-3.5 w-3.5" aria-hidden />
+              Zero Surveillance Design
+            </span>
+          </div>
+
+          <div className="mt-8 grid gap-6 sm:grid-cols-3">
+            {[
+              {
+                icon: <LuLock className="h-5 w-5" aria-hidden />,
+                title: "Only you see your entries",
+                body: "Encrypted client-side. We do not maintain unencrypted logs of your raw vents or sell conversational telemetry.",
+              },
+              {
+                icon: <LuTrash2 className="h-5 w-5" aria-hidden />,
+                title: "Delete anytime in one click",
+                body: "You hold total data sovereignty. Purge individual sessions or your entire history without lingering archives.",
+              },
+              {
+                icon: <LuSparkles className="h-5 w-5" aria-hidden />,
+                title: "Your raw words remain intact",
+                body: "The AI reflection is offered purely as a companion perspective. Your original stream of thought is never overwritten.",
+              },
+            ].map((item) => (
+              <div key={item.title} className="flex flex-col gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-primary">
+                  {item.icon}
+                </div>
+                <h3 className="font-medium text-foreground">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-4 text-center text-sm text-muted-foreground">
-        AirSpace isn&apos;t therapy or an emergency service. <SupportDialog />
+      {/* ── Final CTA ───────────────────────────────────────────────── */}
+      <section className="px-4 py-20 text-center">
+        <div className="mx-auto max-w-lg">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-primary">
+              <LuSparkles className="h-6 w-6" aria-hidden />
+            </div>
+          </div>
+          <h2 className="mb-4 text-3xl font-light tracking-wide text-foreground">
+            Ready to take a breath?
+          </h2>
+          <p className="mb-8 text-muted-foreground">
+            Type whatever is weighing on you right now and feel the immediate release of putting
+            words to paper.
+          </p>
+          <Link
+            to="/register"
+            className="inline-flex h-12 min-w-48 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+          >
+            Open the canvas →
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Crisis strip ────────────────────────────────────────────── */}
+      <section className="border-t bg-secondary/30 px-4 py-8">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-start gap-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+            <LuShieldCheck className="h-5 w-5" aria-hidden />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-foreground">AirSpace isn&apos;t therapy or an emergency service.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              If you are navigating a severe mental health crisis, experiencing suicidal ideation,
+              or need immediate intervention, compassionate and free clinical resources are available
+              around the clock.
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Call/text <strong className="text-foreground">988</strong> (USA &amp; Canada) ·{" "}
+              Text <strong className="text-foreground">HOME to 741741</strong> (Crisis Text Line)
+            </p>
+          </div>
+          <CrisisDialog
+            trigger={
+              <button className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent">
+                View Crisis Resources →
+              </button>
+            }
+          />
+        </div>
+      </section>
+
+      {/* ── Footer ──────────────────────────────────────────────────── */}
+      <footer className="border-t py-5 text-center text-xs text-muted-foreground">
+        <p>© 2025 AirSpace. An unhurried sanctuary for your mind.</p>
+        <div className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1">
+          <span>Zero tracking</span>
+          <span>·</span>
+          <span>Your data stays yours</span>
+          <span>·</span>
+          <span>Export or delete any time</span>
+        </div>
       </footer>
     </div>
   )

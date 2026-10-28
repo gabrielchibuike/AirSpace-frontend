@@ -1,19 +1,30 @@
 export class ApiError extends Error {
   status: number
   fieldErrors: Record<string, string>
+  // Business-level detail string returned by the API as { "detail": "message" }
+  detail: string | null
 
-  constructor(status: number, fieldErrors: Record<string, string> = {}) {
+  constructor(
+    status: number,
+    fieldErrors: Record<string, string> = {},
+    detail: string | null = null,
+  ) {
     super(`Request failed (${status})`) // never include server text or user content
     this.name = "ApiError"
     this.status = status
     this.fieldErrors = fieldErrors
+    this.detail = detail
   }
 }
 
 // FastAPI 422 shape: { detail: [{ loc: ["body", "email"], msg: "..." }] }
+// Business errors:   { detail: "Email already registered." }
 export function toApiError(status: number, body: unknown) {
   const fieldErrors: Record<string, string> = {}
   const detail = (body as { detail?: unknown } | null)?.detail
+
+  let businessDetail: string | null = null
+
   if (Array.isArray(detail)) {
     for (const d of detail) {
       const field = d?.loc?.at(-1)
@@ -21,8 +32,11 @@ export function toApiError(status: number, body: unknown) {
         fieldErrors[field] = d.msg
       }
     }
+  } else if (typeof detail === "string") {
+    businessDetail = detail
   }
-  return new ApiError(status, fieldErrors)
+
+  return new ApiError(status, fieldErrors, businessDetail)
 }
 
 // One place that turns any failure into calm, user-facing copy
@@ -36,6 +50,7 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 401) return "Your session has ended. Please log in again."
     if (error.status === 404) return "We couldn't find that."
+    if (error.status === 409 && error.detail) return error.detail
     if (error.status === 422) return "Please check the highlighted fields."
     if (error.status === 429) return "You're going a little fast. Give it a moment."
     if (error.status >= 500) return "Something went wrong on our side."
