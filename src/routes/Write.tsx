@@ -1,20 +1,24 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LuArrowRight, LuLock, LuSparkles, LuTriangleAlert } from "react-icons/lu"
+import { LuArrowRight, LuSparkles, LuTriangleAlert } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { MoodScale } from "@/features/checkins/MoodScale"
+import { PromptStyleSelect } from "@/components/PromptStyleSelect"
+import { SafetyNotice } from "@/components/SafetyNotice"
+import { MoodScale, moodIcon, moodLabel } from "@/features/checkins/MoodScale"
 import { useCreateCheckIn, useUpdateCheckIn } from "@/features/checkins"
 import { useVent, useReframe } from "@/features/vent/hooks"
+import { VoiceRecorder } from "@/features/voice/VoiceRecorder"
 import { getErrorMessage } from "@/lib/api/errors"
-import { CrisisDialog } from "@/components/CrisisDialog"
-import type { VentResponse } from "@/features/vent/api"
-import type { ReframeResponse } from "@/features/vent/api"
+import type { CrisisResource } from "@/features/checkins/api"
 import type { CheckInResponse } from "@/features/checkins/api"
-import { moodLabel } from "@/features/checkins/MoodScale"
+import type { PromptStyle, ReframeResponse, VentResponse } from "@/features/vent/api"
 
-// Vent text limit from OpenAPI schema
-const VENT_MAX = 12_000
+// Limits from the backend schemas (app/schemas.py).
+const VENT_MAX = 12_000 // POST /vent
+const REFRAME_MAX = 6_000 // POST /reframe
+const NOTE_MAX = 500 // check-in note, stored server-side
+const EMOTION_MAX = 80
 
 type Step = "before" | "write" | "reflect" | "after"
 
@@ -24,115 +28,129 @@ export default function WritePage() {
   const [step, setStep] = useState<Step>("before")
   const [beforeScore, setBeforeScore] = useState<number | null>(null)
   const [ventText, setVentText] = useState("")
+  const [emotion, setEmotion] = useState("")
+  const [noteSaved, setNoteSaved] = useState<number | null>(null)
   const [checkin, setCheckin] = useState<CheckInResponse | null>(null)
   const [ventResult, setVentResult] = useState<VentResponse | null>(null)
   const [reframeResult, setReframeResult] = useState<ReframeResponse | null>(null)
   const [afterScore, setAfterScore] = useState<number | null>(null)
   const [consentToAI, setConsentToAI] = useState(false)
+  const [style, setStyle] = useState<PromptStyle>("gentle")
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [safetyFromVoice, setSafetyFromVoice] = useState<{
+    notice: string
+    resources: CrisisResource[] | null
+  } | null>(null)
 
   const createCheckIn = useCreateCheckIn()
   const updateCheckIn = useUpdateCheckIn()
   const vent = useVent()
   const reframe = useReframe()
 
-  // ── Step 1 → 2: Save before-score check-in and move to writing ──
+  // ── Step 1 → 2: the check-in is what makes this entry persist ─────────────
   async function handleContinueToWrite() {
     if (beforeScore === null) return
+    setSubmitError(null)
     try {
       const created = await createCheckIn.mutateAsync({ before_score: beforeScore })
       setCheckin(created)
-    } catch {
-      // Non-fatal: we can still write without a check-in
+      if (created.safety_notice) {
+        setSafetyFromVoice({ notice: created.safety_notice, resources: created.crisis_resources })
+      }
+    } catch (e) {
+      // Without a check-in there is nothing to save the entry against.
+      setSubmitError(getErrorMessage(e))
+      return
     }
     setStep("write")
   }
 
-  function handleSkipToWrite() {
-    setStep("write")
-  }
-
-  // ── Step 2 → 3: Submit vent text and get acknowledgement ────────
+  // ── Step 2 → 3: static vent response, then save the note ─────────────────
   async function handleVent() {
-    if (ventText.trim().length === 0) return
+    const text = ventText.trim()
+    if (text.length === 0) return
+    setSubmitError(null)
     try {
-      // IMPORTANT: vent text is sent to the API and then discarded — never stored
-      const result = await vent.mutateAsync({ text: ventText })
+      const result = await vent.mutateAsync({ text })
       setVentResult(result)
+
+      // The note is the only part of the writing that is stored, so say so and
+      // save exactly what will be shown back to the user later.
+      if (checkin) {
+        const note = text.slice(0, NOTE_MAX)
+        const saved = await updateCheckIn.mutateAsync({
+          id: checkin.id,
+          body: { note, emotion: emotion.trim().slice(0, EMOTION_MAX) || null },
+        })
+        setCheckin(saved)
+        setNoteSaved(note.length)
+        if (saved.safety_notice) {
+          setSafetyFromVoice({ notice: saved.safety_notice, resources: saved.crisis_resources })
+        }
+      }
       setStep("reflect")
     } catch (e) {
-      // Show error inline; text is preserved in state for retry
-      console.error("Vent failed:", getErrorMessage(e))
+      setSubmitError(getErrorMessage(e))
     }
   }
 
-  // ── Step 3: Request a reframe/reflection ────────────────────────
-  async function handleReframe() {
-    if (ventText.trim().length === 0) return
+  // ── Step 3: request a reframe (AI only after explicit consent) ────────────
+  async function handleReframe(withConsent = false) {
+    const text = ventText.trim().slice(0, REFRAME_MAX)
+    if (text.length === 0) return
+    setSubmitError(null)
     try {
       const result = await reframe.mutateAsync({
-        text: ventText,
-        prompt_style: "gentle",
-        consent_to_ai_processing: consentToAI,
+        text,
+        prompt_style: style,
+        consent_to_ai_processing: withConsent,
       })
       setReframeResult(result)
-    } catch {
-      // Reflection failure is non-fatal
+    } catch (e) {
+      setSubmitError(getErrorMessage(e))
     }
   }
 
-  // ── Step 3 → 4: Move to after mood check-in ─────────────────────
-  function handleContinueToAfter() {
-    setStep("after")
-  }
-
-  // ── Step 4: Save after-score and navigate to session detail ─────
   async function handleFinish() {
+    setSubmitError(null)
     if (afterScore !== null && checkin) {
       try {
-        await updateCheckIn.mutateAsync({
-          id: checkin.id,
-          body: { after_score: afterScore },
-        })
-      } catch {
-        // Non-fatal
+        await updateCheckIn.mutateAsync({ id: checkin.id, body: { after_score: afterScore } })
+      } catch (e) {
+        setSubmitError(getErrorMessage(e))
+        return
       }
     }
-    navigate(checkin ? `/sessions/${checkin.id}` : "/sessions", { replace: true })
+    navigate(checkin ? `/entries/${checkin.id}` : "/entries", { replace: true })
   }
 
-  function handleDoneWithoutAfter() {
-    navigate(checkin ? `/sessions/${checkin.id}` : "/sessions", { replace: true })
-  }
-
-  // ── Safety notice shown if API returns crisis indicators ─────────
-  const safetyNotice = ventResult?.safety_notice ?? reframeResult?.safety_notice
-  const needsHumanSupport = reframeResult?.needs_human_support ?? false
-  // Crisis resources available in ventResult/reframeResult if needed
+  const safetyNotice =
+    safetyFromVoice?.notice ?? ventResult?.safety_notice ?? reframeResult?.safety_notice ?? null
+  const safetyResources =
+    safetyFromVoice?.resources ??
+    ventResult?.crisis_resources ??
+    reframeResult?.crisis_resources ??
+    null
 
   // ════════════════════════════════════════════════════════════════
-  // STEP 1 — Before mood check-in
+  // STEP 1 — Starting check-in
   // ════════════════════════════════════════════════════════════════
   if (step === "before") {
     return (
       <div className="mx-auto max-w-2xl space-y-8">
-        {/* Step indicator */}
         <div className="text-center">
           <p className="mb-3 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-            Step 1 of 2 · Before We Begin
+            Step 1 of 3 · Before we begin
           </p>
           <h1 className="text-3xl font-light tracking-wide text-foreground sm:text-4xl">
             How are you feeling right now?
           </h1>
           <p className="mt-3 text-muted-foreground">
-            Take a breath. There are no right or wrong answers, and no one is evaluating you.
+            This check-in is what saves the entry to your account. Rate it from 1 to 10, where 1 is
+            very heavy and 10 is calm.
           </p>
         </div>
-
-        {/* Breathing cue */}
-        <p className="text-center text-xs text-muted-foreground">
-          breathe in <span aria-hidden>〰️</span> release
-        </p>
 
         <MoodScale
           name="before"
@@ -141,16 +159,11 @@ export default function WritePage() {
           onChange={setBeforeScore}
         />
 
-        {/* Dynamic feedback */}
-        {beforeScore !== null && (
-          <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 text-sm">
-            <p className="text-muted-foreground">
-              {moodLabel(beforeScore)} · Space opening up for your thoughts.
-            </p>
-            <span className="text-xs font-semibold uppercase tracking-widest text-primary">
-              Step 1 Ready
-            </span>
-          </div>
+        {submitError && (
+          <p role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            {submitError}
+          </p>
         )}
 
         <div className="flex flex-col items-center gap-3">
@@ -160,24 +173,13 @@ export default function WritePage() {
             disabled={beforeScore === null || createCheckIn.isPending}
             onClick={handleContinueToWrite}
           >
-            {createCheckIn.isPending
-              ? "One moment…"
-              : "Continue to writing space"}
+            {createCheckIn.isPending ? "One moment…" : "Continue to writing space"}
             <LuArrowRight className="h-4 w-4" aria-hidden />
           </Button>
-          <button
-            type="button"
-            onClick={handleSkipToWrite}
-            className="text-sm text-primary underline-offset-4 hover:underline"
-          >
-            Skip for now — I just want to write
-          </button>
+          <p className="text-center text-xs text-muted-foreground">
+            Your score and note are stored in your account so you can look back at them.
+          </p>
         </div>
-
-        <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-          <LuLock className="h-3.5 w-3.5" aria-hidden />
-          Only you can see this · Never used for profiling or algorithms
-        </p>
       </div>
     )
   }
@@ -188,18 +190,18 @@ export default function WritePage() {
   if (step === "write") {
     const charCount = ventText.length
     const wordCount = ventText.trim() === "" ? 0 : ventText.trim().split(/\s+/).length
+    const noteLength = Math.min(charCount, NOTE_MAX)
     const canSubmit = ventText.trim().length > 0 && !vent.isPending
 
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        {/* Step indicator */}
         <div className="flex items-center justify-between">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
-            Step 2 of 2 · Air It Out
+            Step 2 of 3 · Air it out
           </p>
           {beforeScore !== null && (
             <span className="flex items-center gap-1.5 rounded-full border bg-secondary px-3 py-1 text-xs text-muted-foreground">
-              Feeling: {moodLabel(beforeScore)}
+              Feeling: {moodLabel(beforeScore)} ({beforeScore}/10)
             </span>
           )}
         </div>
@@ -213,15 +215,24 @@ export default function WritePage() {
           </p>
         </div>
 
-        {/* Writing canvas */}
+        <VoiceRecorder
+          onTranscript={(text) => setVentText((current) => (current ? `${current}\n${text}` : text))}
+          onSafety={(notice, resources) => setSafetyFromVoice({ notice, resources })}
+          disabled={vent.isPending}
+        />
+
+        {safetyFromVoice && (
+          <SafetyNotice notice={safetyFromVoice.notice} resources={safetyFromVoice.resources} />
+        )}
+
         <div className="rounded-2xl border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b px-4 py-2">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               <span className="h-1.5 w-8 rounded-full bg-primary" aria-hidden />
-              Your Words
+              Your words
             </p>
             <p className="text-xs text-muted-foreground">
-              {vent.isSuccess ? "Saved" : "Autosaved locally"}
+              {noteLength > 0 ? `${noteLength}/${NOTE_MAX} saved as note` : "Not saved yet"}
             </p>
           </div>
           <Textarea
@@ -230,127 +241,124 @@ export default function WritePage() {
             maxLength={VENT_MAX}
             autoComplete="off"
             spellCheck
-            placeholder="Write whatever's on your mind. This is just for you."
+            placeholder="Write whatever's on your mind."
             className="min-h-72 resize-y border-0 bg-transparent p-5 text-base leading-relaxed shadow-none focus-visible:ring-0"
             onChange={(e) => setVentText(e.target.value)}
             aria-label="Your words"
           />
           <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <LuLock className="h-3.5 w-3.5" aria-hidden />
-              Only you can see this · End-to-end local privacy
-            </span>
+            <span>Only the first {NOTE_MAX} characters are kept as the entry note.</span>
             <span>
               {wordCount} word{wordCount !== 1 ? "s" : ""} · {charCount.toLocaleString()} characters
             </span>
           </div>
         </div>
 
-        {/* Error state */}
-        {vent.isError && (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-          >
+        <div className="grid gap-2">
+          <label htmlFor="emotion" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            One word for how this feels (optional)
+          </label>
+          <input
+            id="emotion"
+            value={emotion}
+            maxLength={EMOTION_MAX}
+            onChange={(e) => setEmotion(e.target.value)}
+            placeholder="e.g. exhausted, relieved, angry"
+            className="h-10 rounded-lg border bg-card px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+
+        <p className="rounded-xl border bg-secondary/40 px-4 py-3 text-xs text-muted-foreground">
+          Your note and score are stored in your account. The full text is sent to the server for a
+          reflection and is not stored there — but it is also not end-to-end encrypted.
+        </p>
+
+        {submitError && (
+          <p role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            <span>{getErrorMessage(vent.error)} Your text is still here — you can try again.</span>
-          </div>
+            {submitError}
+          </p>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            disabled
-            className="flex items-center gap-1.5 text-sm text-muted-foreground opacity-50"
-            title="Draft saving is local"
-          >
-            Save as private draft
-          </button>
-          <Button
-            size="lg"
-            className="gap-2"
-            disabled={!canSubmit}
-            onClick={handleVent}
-          >
-            {vent.isPending ? "Saving…" : "Save & reflect →"}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button size="lg" className="gap-2" disabled={!canSubmit} onClick={handleVent}>
+            {vent.isPending ? "Saving…" : "Save & reflect"}
+            <LuArrowRight className="h-4 w-4" aria-hidden />
           </Button>
         </div>
 
-        {/* Gentle pause note */}
-        <div className="flex items-start gap-3 rounded-xl border bg-secondary/40 px-4 py-3 text-sm text-muted-foreground">
-          <LuSparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-          <div>
-            <p className="font-semibold text-secondary-foreground uppercase tracking-widest text-xs">Gentle Pause</p>
-            <p className="mt-0.5">No rush to finish. When you save, we&apos;ll quietly help you decompress.</p>
-          </div>
-        </div>
-
         <p className="text-center text-xs text-muted-foreground">
-          AirSpace is designed as an emotional exhalation. Never used for public discovery.
+          Room to pause. When you save, we&apos;ll offer a reflection and a closing check-in.
         </p>
       </div>
     )
   }
 
   // ════════════════════════════════════════════════════════════════
-  // STEP 3 — Decompress & Reframe
+  // STEP 3 — Reflection
   // ════════════════════════════════════════════════════════════════
   if (step === "reflect") {
+    const consentRequired = reframeResult?.ai_status === "consent_required"
+    const reflection = reframeResult?.reflection ?? null
+    // "unavailable" still carries the static generic prompt, so show it rather than
+    // leaving the screen with a dead button and no output.
+    const showReflection =
+      reflection !== null &&
+      (reframeResult?.ai_status === "success" ||
+        reframeResult?.ai_status === "fallback" ||
+        reframeResult?.ai_status === "unavailable")
+
+    // Per the contract, a safety notice takes over the screen.
+    if (safetyNotice) {
+      return (
+        <div className="mx-auto max-w-2xl space-y-6">
+          <SafetyNotice notice={safetyNotice} resources={safetyResources} />
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" size="lg" onClick={() => navigate("/entries", { replace: true })}>
+              Go to my entries
+            </Button>
+            <Button variant="ghost" size="lg" onClick={() => setStep("after")}>
+              Record how I feel now
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        {/* Step indicator */}
         <div className="flex items-center justify-between">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-            Step 2.5 · Decompress &amp; Reframe
+            Step 3 of 3 · Decompress &amp; reflect
           </p>
           {beforeScore !== null && (
             <span className="flex items-center gap-1.5 rounded-full border bg-secondary px-3 py-1 text-xs text-muted-foreground">
-              Initial feeling: {moodLabel(beforeScore)} ({beforeScore}/5)
+              Started at {moodLabel(beforeScore)} ({beforeScore}/10)
             </span>
           )}
         </div>
 
-        {/* Safety notice */}
-        {(safetyNotice || needsHumanSupport) && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-900 dark:bg-amber-950">
-            <p className="font-semibold text-amber-900 dark:text-amber-200">
-              {safetyNotice ?? "It sounds like you may benefit from human support right now."}
-            </p>
-            <CrisisDialog
-              trigger={
-                <button className="mt-2 text-xs font-medium text-amber-800 underline underline-offset-4 dark:text-amber-300">
-                  View crisis resources →
-                </button>
-              }
-            />
-          </div>
-        )}
-
-        {/* Vent acknowledgement */}
         {ventResult && (
           <div className="rounded-2xl border-l-4 border-primary bg-card p-5 shadow-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Your Words · Only you can see this
+            <p className="mb-3 flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <span>What you said</span>
+              {noteSaved !== null && <span className="normal-case">Note saved · {noteSaved} characters</span>}
             </p>
-            <p className="text-base italic text-muted-foreground leading-relaxed">
+            <p className="text-base italic leading-relaxed text-muted-foreground">
               {ventResult.acknowledgement}
             </p>
           </div>
         )}
 
-        {/* Reflection prompts from vent */}
-        {ventResult && ventResult.reflection_prompts.length > 0 && !reframeResult && (
+        {ventResult && ventResult.reflection_prompts.length > 0 && !showReflection && (
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              A few things to sit with:
+              A few things to sit with
             </p>
             <ul className="space-y-2">
-              {ventResult.reflection_prompts.map((prompt, i) => (
-                <li
-                  key={i}
-                  className="rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground"
-                >
+              {ventResult.reflection_prompts.map((prompt, index) => (
+                <li key={index} className="rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground">
                   {prompt}
                 </li>
               ))}
@@ -358,119 +366,108 @@ export default function WritePage() {
           </div>
         )}
 
-        {/* Reframe result */}
-        {reframeResult && reframeResult.reflection && (
+        <PromptStyleSelect value={style} onChange={setStyle} disabled={reframe.isPending} />
+
+        {showReflection && (
           <div className="rounded-2xl border bg-ai p-6 shadow-sm">
-            {/* Provenance header */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 rounded-full border border-ai-border bg-card/50 px-3 py-1 text-xs font-medium text-ai-foreground">
                 <LuSparkles className="h-3 w-3" aria-hidden />
-                {reframeResult.ai_status === "success"
-                  ? "AI-generated reflection"
-                  : "Reflection"}{" "}
-                · Not advice or a diagnosis.
+                {reframeResult?.ai_status === "success" ? "AI reflection" : "Basic prompt"}
+                {reframeResult?.ai_status === "success" && " · DeepSeek"} · Not advice or a diagnosis
               </span>
-              <span className="text-xs text-muted-foreground">Stored privately</span>
+              <span className="text-xs text-muted-foreground">Not stored — read it now</span>
             </div>
-
             <p className="whitespace-pre-wrap break-words leading-relaxed text-ai-foreground">
-              {reframeResult.reflection}
+              {reflection}
             </p>
-
-            {/* Consent disclosure */}
-            {reframeResult.ai_status === "consent_required" && (
-              <div className="mt-4 rounded-lg border bg-card/50 px-3 py-2 text-xs text-muted-foreground">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={consentToAI}
-                    onChange={(e) => setConsentToAI(e.target.checked)}
-                    className="mt-0.5"
-                  />
-                  <span>
-                    I consent to AI processing of my text for a more personalised reflection.{" "}
-                    <span className="text-primary">
-                      (Your raw words are never stored or used for training.)
-                    </span>
-                  </span>
-                </label>
-                {consentToAI && (
-                  <Button
-                    size="sm"
-                    className="mt-2 gap-1"
-                    disabled={reframe.isPending}
-                    onClick={handleReframe}
-                  >
-                    <LuSparkles className="h-3.5 w-3.5" aria-hidden />
-                    {reframe.isPending ? "Reflecting…" : "Get AI reflection"}
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
         )}
 
-        {/* Request reflection */}
-        {!reframeResult && (
-          <div className="flex flex-wrap gap-3">
+        {/* Consent is shown whenever the API says it needs opt-in, even with no reflection. */}
+        {consentRequired && (
+          <div className="rounded-xl border bg-secondary/40 px-4 py-3 text-sm">
+            <label className="flex cursor-pointer items-start gap-2">
+              <input
+                type="checkbox"
+                checked={consentToAI}
+                onChange={(e) => setConsentToAI(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                I consent to my text being sent to <strong className="text-foreground">DeepSeek</strong>, an
+                external AI provider, to generate a more personalised reflection.{" "}
+                <span className="text-muted-foreground">
+                  AirSpace does not store your words. DeepSeek handles the text under its own terms
+                  and privacy policy.
+                </span>
+              </span>
+            </label>
             <Button
-              variant="secondary"
-              className="gap-2"
-              disabled={reframe.isPending}
-              onClick={handleReframe}
+              size="sm"
+              className="mt-3 gap-1.5"
+              disabled={!consentToAI || reframe.isPending}
+              onClick={() => handleReframe(true)}
             >
-              <LuSparkles className="h-4 w-4" aria-hidden />
-              {reframe.isPending
-                ? "Taking a thoughtful look…"
-                : reframe.isError
-                  ? "Try reflection again"
-                  : "Get a gentle reflection"}
+              <LuSparkles className="h-3.5 w-3.5" aria-hidden />
+              {reframe.isPending ? "Reflecting…" : "Send with consent"}
             </Button>
           </div>
         )}
 
-        {reframe.isError && (
-          <p className="text-sm text-muted-foreground">
-            We couldn&apos;t generate a reflection right now. Your entry is saved and safe.
+        {!showReflection && !consentRequired && (
+          <Button
+            variant="secondary"
+            className="gap-2"
+            disabled={reframe.isPending}
+            onClick={() => handleReframe(consentToAI)}
+          >
+            <LuSparkles className="h-4 w-4" aria-hidden />
+            {reframe.isPending
+              ? "Taking a thoughtful look…"
+              : reframe.isError
+                ? "Try the reflection again"
+                : "Get a gentle reflection"}
+          </Button>
+        )}
+
+        {ventText.trim().length > REFRAME_MAX && (
+          <p className="text-xs text-muted-foreground">
+            Only the first {REFRAME_MAX.toLocaleString()} characters are used for the AI reflection.
+            Your saved note is the first {NOTE_MAX}.
           </p>
         )}
 
-        {/* Navigation */}
+        {submitError && (
+          <p role="alert" className="flex items-start gap-2 text-sm text-destructive">
+            <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            {submitError}
+          </p>
+        )}
+
         <div className="flex flex-wrap items-center gap-3 border-t pt-4">
-          <Button size="lg" className="gap-2" onClick={handleContinueToAfter}>
-            Continue to After Mood Check-In
+          <Button size="lg" className="gap-2" onClick={() => setStep("after")}>
+            Closing check-in
             <LuArrowRight className="h-4 w-4" aria-hidden />
           </Button>
-          <button
-            type="button"
-            onClick={handleDoneWithoutAfter}
-            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Skip closing check-in
-          </button>
+          <Button variant="ghost" size="lg" onClick={() => navigate(checkin ? `/entries/${checkin.id}` : "/entries")}>
+            View this entry
+          </Button>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          AirSpace isn&apos;t therapy or an emergency service. Call or text{" "}
-          <a href="tel:988" className="font-semibold text-foreground">988</a>{" "}
-          (USA &amp; Canada) · Text{" "}
-          <strong className="text-foreground">HOME</strong> to{" "}
-          <strong className="text-foreground">741741</strong>
-        </p>
       </div>
     )
   }
 
   // ════════════════════════════════════════════════════════════════
-  // STEP 4 — Closing check-in (after mood)
+  // STEP 4 — Closing check-in
   // ════════════════════════════════════════════════════════════════
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      {/* Step indicator */}
       <div className="text-center">
         <p className="mb-3 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-          Step 3 of 3 · Closing Check-In
+          Closing check-in
         </p>
         <h1 className="text-3xl font-light tracking-wide text-foreground sm:text-4xl">
           How are you feeling now?
@@ -480,9 +477,6 @@ export default function WritePage() {
         </p>
       </div>
 
-      {/* Breathing cue */}
-      <p className="text-center text-xs text-muted-foreground">Pause · Notice your breath</p>
-
       <MoodScale
         name="after"
         legend="How are you feeling now?"
@@ -490,16 +484,17 @@ export default function WritePage() {
         onChange={setAfterScore}
       />
 
-      {/* Before → After comparison */}
       {beforeScore !== null && afterScore !== null && (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-4">
+        <div className="space-y-4 rounded-2xl border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-around gap-4 text-sm">
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <p className="text-xs uppercase tracking-widest">Before Entry</p>
+              <p className="text-xs uppercase tracking-widest">Before</p>
               <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-input bg-muted text-lg">
-                {beforeScore === 1 ? "💧" : beforeScore === 2 ? "☁️" : beforeScore === 3 ? "—" : beforeScore === 4 ? "🌬️" : "🌿"}
+                {moodIcon(beforeScore)}
               </div>
-              <p className="font-medium">{moodLabel(beforeScore)}</p>
+              <p className="font-medium">
+                {moodLabel(beforeScore)} ({beforeScore}/10)
+              </p>
             </div>
             <div className="flex flex-col items-center gap-1 text-xs text-muted-foreground">
               <LuArrowRight className="h-5 w-5" aria-hidden />
@@ -508,15 +503,16 @@ export default function WritePage() {
             <div className="flex flex-col items-center gap-2">
               <p className="text-xs uppercase tracking-widest text-muted-foreground">Now</p>
               <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-primary bg-primary/10 text-lg">
-                {afterScore === 1 ? "💧" : afterScore === 2 ? "☁️" : afterScore === 3 ? "—" : afterScore === 4 ? "🌬️" : "🌿"}
+                {moodIcon(afterScore)}
               </div>
-              <p className="font-medium text-primary">{moodLabel(afterScore)}</p>
+              <p className="font-medium text-primary">
+                {moodLabel(afterScore)} ({afterScore}/10)
+              </p>
             </div>
           </div>
-          {/* Narrative summary */}
-          <div className="rounded-xl bg-muted px-4 py-3 text-sm text-center text-foreground">
-            You started at <strong>{moodLabel(beforeScore)}</strong> and ended at{" "}
-            <strong className="text-primary">{moodLabel(afterScore)}</strong>.{" "}
+          <div className="rounded-xl bg-muted px-4 py-3 text-center text-sm text-foreground">
+            You started at <strong>{beforeScore}/10</strong> and ended at{" "}
+            <strong className="text-primary">{afterScore}/10</strong>.{" "}
             {afterScore >= beforeScore
               ? "Giving your thoughts a quiet place to land created a little breathing room."
               : "It takes courage to be honest about where you are. That matters."}
@@ -524,45 +520,31 @@ export default function WritePage() {
         </div>
       )}
 
-      {/* Summary strip */}
-      <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-2">
-          <LuSparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-          Entry saved · {reframeResult ? "1 companion reflection attached" : "No reflection attached"}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <LuLock className="h-3.5 w-3.5" aria-hidden />
-          Private &amp; Encrypted
-        </span>
-      </div>
+      {submitError && (
+        <p role="alert" className="flex items-start gap-2 text-sm text-destructive">
+          <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          {submitError}
+        </p>
+      )}
 
-      {/* Actions */}
       <div className="flex flex-wrap gap-3">
         <Button
           size="lg"
           className="gap-2"
-          disabled={updateCheckIn.isPending}
+          disabled={afterScore === null || updateCheckIn.isPending}
           onClick={handleFinish}
         >
-          {updateCheckIn.isPending ? "Saving…" : "Done ✓"}
+          {updateCheckIn.isPending ? "Saving…" : "Save and finish"}
         </Button>
         <Button
           variant="outline"
           size="lg"
-          className="gap-2"
-          onClick={handleDoneWithoutAfter}
+          onClick={() => navigate(checkin ? `/entries/${checkin.id}` : "/entries", { replace: true })}
         >
-          View this session
+          Skip the closing score
         </Button>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground">
-        AirSpace isn&apos;t therapy or an emergency service. Call or text{" "}
-        <a href="tel:988" className="font-semibold text-foreground">988</a>{" "}
-        (USA &amp; Canada) · Text{" "}
-        <strong className="text-foreground">HOME</strong> to{" "}
-        <strong className="text-foreground">741741</strong>
-      </p>
     </div>
   )
 }

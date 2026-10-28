@@ -79,7 +79,7 @@ export default function SettingsPage() {
           </div>
           <span className="flex items-center gap-1.5 rounded-full border bg-secondary px-2.5 py-1 text-xs text-muted-foreground">
             <LuShieldCheck className="h-3.5 w-3.5" aria-hidden />
-            Client Verified
+            Signed in
           </span>
         </div>
 
@@ -96,8 +96,7 @@ export default function SettingsPage() {
               Joined {joined}
               {checkins !== undefined && (
                 <>
-                  {" "}· {checkins.length} session
-                  {checkins.length !== 1 ? "s" : ""}
+                  {" "}· {checkins.length} {checkins.length === 1 ? "entry" : "entries"}
                 </>
               )}
             </p>
@@ -105,7 +104,8 @@ export default function SettingsPage() {
         </div>
 
         <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
-          Sessions stay local on this browser until signed out. No telemetry is emitted.
+          You stay signed in for up to 7 days. The API has no refresh or server-side logout, so
+          logging out here clears the token on this browser only.
         </p>
 
         <Button
@@ -235,7 +235,7 @@ export default function SettingsPage() {
         )}
       </section>
 
-      {/* ── Privacy & encryption card ────────────────────────────────── */}
+      {/* ── Privacy & data card ──────────────────────────────────────── */}
       <section
         aria-labelledby="privacy-heading"
         className="rounded-2xl border bg-card p-5 shadow-sm space-y-4"
@@ -243,32 +243,42 @@ export default function SettingsPage() {
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-              Core Guarantee
+              What the API actually does
             </p>
             <h2 id="privacy-heading" className="font-medium text-foreground text-sm">
-              Privacy &amp; Encryption
+              Privacy &amp; data
             </h2>
           </div>
           <span className="rounded-full border bg-secondary px-2.5 py-1 text-xs text-muted-foreground">
-            Zero-Knowledge Architecture
+            No end-to-end encryption
           </span>
         </div>
 
         <div className="rounded-xl bg-muted px-4 py-3 text-sm text-foreground space-y-2">
-          <p className="font-medium">What we store, who can see it, and how to delete it</p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Your vent text is{" "}
-            <strong className="text-foreground">never stored</strong> server-side.
-            Reflections are generated transiently and discarded. Mood check-in scores
-            and notes are stored and accessible only via your authenticated account.
-          </p>
+          <p className="font-medium">What is stored, what isn&apos;t, and how to delete it</p>
+          <ul className="list-disc space-y-1 pl-4 text-sm text-muted-foreground leading-relaxed">
+            <li>
+              <strong className="text-foreground">Stored:</strong> your email, mood scores (1–10),
+              the emotion word, and the first 500 characters of each note.
+            </li>
+            <li>
+              <strong className="text-foreground">Not stored:</strong> full vent text, voice
+              recordings, transcripts, chat history, and reflections. These are processed in memory
+              and discarded.
+            </li>
+            <li>
+              <strong className="text-foreground">Third parties:</strong> when you consent, text goes
+              to DeepSeek and voice recordings go to ElevenLabs. The app has no analytics or error
+              tracking installed.
+            </li>
+          </ul>
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground text-center">
           {[
-            "Never trains public models",
-            "No behavioural profiling",
-            "Zero third-party sharing",
+            "Stored: scores, notes, email",
+            "Never stored: vents, audio, chat",
+            "Delete everything in one step",
           ].map((item) => (
             <div key={item} className="flex flex-col items-center gap-1.5 rounded-lg bg-muted p-2">
               <LuShieldCheck className="h-4 w-4 text-primary" aria-hidden />
@@ -298,23 +308,14 @@ export default function SettingsPage() {
               Delete my account and all data
             </h3>
             <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-              Permanently wipe your profile, journal archives, mood shifts, and all
-              check-ins from servers. This action is instantaneous and cannot be recovered.
+              Permanently deletes your account, every entry and its note from the server. The API
+              asks for no password confirmation, so this dialog is the only guard.
             </p>
           </div>
           <DeleteAccountDialog />
         </div>
       </section>
 
-      <p className="text-center text-xs text-muted-foreground">
-        AirSpace isn&apos;t therapy or an emergency service. Call or text{" "}
-        <a href="tel:988" className="font-semibold text-foreground">
-          988
-        </a>{" "}
-        (USA &amp; Canada) · Text{" "}
-        <strong className="text-foreground">HOME</strong> to{" "}
-        <strong className="text-foreground">741741</strong>
-      </p>
     </div>
   )
 }

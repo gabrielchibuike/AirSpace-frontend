@@ -3,17 +3,21 @@ export class ApiError extends Error {
   fieldErrors: Record<string, string>
   // Business-level detail string returned by the API as { "detail": "message" }
   detail: string | null
+  // Seconds from a 429 `Retry-After` header, when the server sends one
+  retryAfter: number | null
 
   constructor(
     status: number,
     fieldErrors: Record<string, string> = {},
     detail: string | null = null,
+    retryAfter: number | null = null,
   ) {
     super(`Request failed (${status})`) // never include server text or user content
     this.name = "ApiError"
     this.status = status
     this.fieldErrors = fieldErrors
     this.detail = detail
+    this.retryAfter = retryAfter
   }
 }
 
@@ -51,8 +55,14 @@ export function getErrorMessage(error: unknown): string {
     if (error.status === 401) return "Your session has ended. Please log in again."
     if (error.status === 404) return "We couldn't find that."
     if (error.status === 409 && error.detail) return error.detail
+    if (error.status === 413) return "That recording is too long. Keep it under 10 MB."
+    if (error.status === 415) return "That audio format isn't supported. Try recording again."
     if (error.status === 422) return "Please check the highlighted fields."
-    if (error.status === 429) return "You're going a little fast. Give it a moment."
+    if (error.status === 429) {
+      return error.retryAfter
+        ? `You're going a little fast. Try again in about ${error.retryAfter} seconds.`
+        : "You're going a little fast. Give it a moment."
+    }
     if (error.status >= 500) return "Something went wrong on our side."
   }
   if (error instanceof TypeError) return "We can't reach AirSpace. Check your connection."

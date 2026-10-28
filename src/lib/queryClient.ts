@@ -1,7 +1,6 @@
 import { QueryClient } from "@tanstack/react-query"
 import { setToken } from "./api/client"
 import { ApiError } from "./api/errors"
-import { draftStore } from "./draft"
 import { tokenStore } from "./tokenStore"
 import { qk } from "./queryKeys"
 
@@ -18,7 +17,6 @@ export const queryClient = new QueryClient({
 
 // On logout or expired session: wipe every private thing held in the browser
 export function clearPrivateCache() {
-  draftStore.clear()
   tokenStore.clear()
   setToken(null)
   queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "me" })

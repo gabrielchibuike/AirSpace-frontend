@@ -109,30 +109,27 @@ export function CrisisDialog({ trigger, defaultOpen }: Props) {
           </ul>
         )}
 
-        {/* Fallback when API hasn't loaded yet or returns nothing */}
+        {/* Fallback when the resources list hasn't loaded yet */}
         {!isPending && (!resources || resources.length === 0) && (
           <ul className="space-y-2 text-sm">
             <li>
-              <span className="font-semibold">988 Lifeline:</span>{" "}
-              <a href="tel:988" className="underline underline-offset-4">
-                Call or text 988
-              </a>{" "}
-              (USA &amp; Canada)
+              <span className="font-semibold">Emergency services:</span>{" "}
+              <a href="tel:112" className="underline underline-offset-4">112</a> (Nigeria; Lagos: 767)
             </li>
             <li>
-              <span className="font-semibold">Crisis Text Line:</span> Text{" "}
-              <strong>HOME</strong> to <strong>741741</strong>
+              <span className="font-semibold">MANI:</span>{" "}
+              <a href="tel:08091116264" className="underline underline-offset-4">0809 111 6264</a>{" "}
+              (24/7, free)
             </li>
             <li>
-              <span className="font-semibold">Samaritans:</span>{" "}
-              <a href="tel:116123" className="underline underline-offset-4">
-                116 123
-              </a>{" "}
-              (UK &amp; Ireland)
+              <span className="font-semibold">SURPIN:</span>{" "}
+              <a href="tel:08000787746" className="underline underline-offset-4">0800 078 7746</a>{" "}
+              (24/7)
             </li>
             <li>
-              <span className="font-semibold">Shout:</span> Text{" "}
-              <strong>SHOUT</strong> to <strong>85258</strong> (UK)
+              <span className="font-semibold">Safe Place Nigeria:</span>{" "}
+              <a href="tel:08008002000" className="underline underline-offset-4">0800 800 2000</a>{" "}
+              (24/7, toll-free)
             </li>
           </ul>
         )}

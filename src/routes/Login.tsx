@@ -51,7 +51,7 @@ export default function LoginPage() {
           <LoginForm />
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Your entries remain sealed and encrypted in your personal vault.
+            Your entries are stored in your account between visits.
           </p>
         </div>
 
@@ -72,11 +72,9 @@ export default function LoginPage() {
       </main>
 
       <footer className="border-t py-4 text-center text-xs text-muted-foreground">
-        AirSpace isn&apos;t therapy or an emergency service. Call or text{" "}
-        <a href="tel:988" className="font-semibold text-foreground">988</a>{" "}
-        (USA &amp; Canada) · Text{" "}
-        <strong className="text-foreground">HOME</strong> to{" "}
-        <strong className="text-foreground">741741</strong>
+        AirSpace isn&apos;t therapy or an emergency service. In Nigeria call{" "}
+        <a href="tel:112" className="font-semibold text-foreground">112</a>{" "}
+        (Lagos: 767).
       </footer>
     </div>
   )

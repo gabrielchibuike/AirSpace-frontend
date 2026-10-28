@@ -52,25 +52,23 @@ export default function RegisterPage() {
 
           {/* Privacy note */}
           <div className="mt-5 rounded-lg border bg-muted/50 px-4 py-3 text-sm">
-            <p className="font-medium text-foreground">Your thoughts remain strictly yours.</p>
+            <p className="font-medium text-foreground">You decide what gets saved.</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              AirSpace will never sell personal journals or feed your entries into open
-              training sets.
+              Scores and the first 500 characters of a note are stored in your account. Full vent
+              text, recordings and chat are not.
             </p>
           </div>
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          AirSpace provides quiet personal containment · Free, unmonitored, ad-free
+          Free · no ads · no analytics
         </p>
       </main>
 
       <footer className="border-t py-4 text-center text-xs text-muted-foreground">
-        AirSpace isn&apos;t therapy or an emergency service. Call or text{" "}
-        <a href="tel:988" className="font-semibold text-foreground">988</a>{" "}
-        (USA &amp; Canada) · Text{" "}
-        <strong className="text-foreground">HOME</strong> to{" "}
-        <strong className="text-foreground">741741</strong>
+        AirSpace isn&apos;t therapy or an emergency service. In Nigeria call{" "}
+        <a href="tel:112" className="font-semibold text-foreground">112</a>{" "}
+        (Lagos: 767).
       </footer>
     </div>
   )

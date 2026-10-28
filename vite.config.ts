@@ -12,6 +12,16 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "./src"),
     },
   },
+  // In dev, talk to the local FastAPI backend on :8000 through the Vite origin
+  // so the browser never hits CORS or the deployed instance.
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,

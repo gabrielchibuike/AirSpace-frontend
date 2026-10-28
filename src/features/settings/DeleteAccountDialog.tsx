@@ -40,8 +40,8 @@ export function DeleteAccountDialog() {
         <DialogHeader>
           <DialogTitle>Delete your account?</DialogTitle>
           <DialogDescription>
-            All your sessions, entries, and reflections will be permanently deleted.
-            This cannot be undone.
+            Your account, every check-in score, note and emotion word will be permanently
+            deleted. Reflections were never stored. This cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4">

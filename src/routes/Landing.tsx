@@ -116,7 +116,7 @@ export default function LandingPage() {
                 icon: <LuPenLine className="h-5 w-5" aria-hidden />,
                 title: "Air It Out",
                 subtitle: "Write freely, without judgment",
-                body: "Type whatever is churning inside without worry over punctuation, structure, or composure. An uncluttered white canvas designed solely to help you unload.",
+                body: "Type or record whatever is churning inside, without worry over punctuation or composure. Only the first 500 characters are kept as a note; the rest is processed and discarded.",
                 note: "Zero external space sharing",
               },
               {
@@ -132,7 +132,7 @@ export default function LandingPage() {
                 icon: <LuActivity className="h-5 w-5" aria-hidden />,
                 title: "Track Your Reset",
                 subtitle: "See how you feel before and after",
-                body: "Check in with your nervous system on a quiet 5-point scale before writing and after reading. No streaks, no gamified badges, and zero guilt for skipping days.",
+                body: "Check in with your nervous system on a 1-to-10 scale before writing and after reading. Voice notes work too, and a short AI chat is there if you would rather talk it through.",
                 note: "Self-awareness, not metrics",
               },
             ].map((item) => (
@@ -168,18 +168,18 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Radical Confidentiality
+                Plain-Language Privacy
               </p>
               <h2
                 id="privacy-heading"
                 className="text-2xl font-light tracking-wide text-foreground"
               >
-                Your thoughts belong only to you.
+                Here is exactly what happens to your words.
               </h2>
             </div>
             <span className="flex items-center gap-1.5 rounded-full border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground">
               <LuShieldCheck className="h-3.5 w-3.5" aria-hidden />
-              Zero Surveillance Design
+              No analytics installed
             </span>
           </div>
 
@@ -187,18 +187,18 @@ export default function LandingPage() {
             {[
               {
                 icon: <LuLock className="h-5 w-5" aria-hidden />,
-                title: "Only you see your entries",
-                body: "Encrypted client-side. We do not maintain unencrypted logs of your raw vents or sell conversational telemetry.",
+                title: "What is stored",
+                body: "Your email, mood scores, the emotion word, and the first 500 characters of each note. Full vent text, recordings, transcripts and chat are never saved. There is no end-to-end encryption.",
               },
               {
                 icon: <LuTrash2 className="h-5 w-5" aria-hidden />,
-                title: "Delete anytime in one click",
-                body: "You hold total data sovereignty. Purge individual sessions or your entire history without lingering archives.",
+                title: "Delete anytime",
+                body: "Remove a single entry, or delete your account and every check-in with it. There is no archive and no recovery afterwards.",
               },
               {
                 icon: <LuSparkles className="h-5 w-5" aria-hidden />,
-                title: "Your raw words remain intact",
-                body: "The AI reflection is offered purely as a companion perspective. Your original stream of thought is never overwritten.",
+                title: "You choose when AI sees it",
+                body: "Reflections and chat replies only happen after you tick a disclosure naming the provider: DeepSeek for text and ElevenLabs for voice. Without consent, you still get static prompts.",
               },
             ].map((item) => (
               <div key={item.title} className="flex flex-col gap-3">
@@ -251,8 +251,9 @@ export default function LandingPage() {
               around the clock.
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Call/text <strong className="text-foreground">988</strong> (USA &amp; Canada) ·{" "}
-              Text <strong className="text-foreground">HOME to 741741</strong> (Crisis Text Line)
+              In Nigeria, call <strong className="text-foreground">112</strong> (Lagos: 767). The
+              resources list is loaded from the AirSpace API, including MANI, SURPIN and Lagos
+              Lifeline.
             </p>
           </div>
           <CrisisDialog
@@ -267,13 +268,13 @@ export default function LandingPage() {
 
       {/* ── Footer ──────────────────────────────────────────────────── */}
       <footer className="border-t py-5 text-center text-xs text-muted-foreground">
-        <p>© 2025 AirSpace. An unhurried sanctuary for your mind.</p>
+        <p>© 2026 AirSpace. An unhurried sanctuary for your mind.</p>
         <div className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1">
-          <span>Zero tracking</span>
+          <span>No analytics</span>
           <span>·</span>
-          <span>Your data stays yours</span>
+          <span>Delete any time</span>
           <span>·</span>
-          <span>Export or delete any time</span>
+          <span>Not a therapy service</span>
         </div>
       </footer>
     </div>

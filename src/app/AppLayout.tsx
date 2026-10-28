@@ -9,11 +9,13 @@ import {
 } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { CrisisDialog } from "@/components/CrisisDialog"
+import { CrisisFooter } from "@/components/CrisisFooter"
 import { useLogout, useMe } from "@/features/auth"
 
 const NAV_LINKS = [
   { to: "/dashboard", label: "Dashboard" },
-  { to: "/sessions", label: "History" },
+  { to: "/chat", label: "Chat" },
+  { to: "/entries", label: "History" },
   { to: "/settings", label: "Settings" },
 ]
 
@@ -170,31 +172,9 @@ export function AppLayout() {
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="border-t py-4 text-center text-xs text-muted-foreground">
-        <p>AirSpace isn&apos;t therapy or an emergency service.</p>
-        <p className="mt-0.5">
-          Call or text{" "}
-          <a href="tel:988" className="font-semibold text-foreground hover:underline">
-            988
-          </a>{" "}
-          (USA &amp; Canada) · Text{" "}
-          <strong className="text-foreground">HOME</strong> to{" "}
-          <strong className="text-foreground">741741</strong>
-        </p>
-        <div className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1">
-          <CrisisDialog
-            trigger={
-              <button className="underline underline-offset-4 hover:no-underline">
-                Need urgent help?
-              </button>
-            }
-          />
-          <span aria-hidden>·</span>
-          <span>Zero tracking</span>
-          <span aria-hidden>·</span>
-          <span>End-to-end encrypted</span>
-        </div>
-      </footer>
+      <div className="border-t px-4 py-4">
+        <CrisisFooter />
+      </div>
     </div>
   )
 }

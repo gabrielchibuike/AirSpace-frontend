@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from "react-router-dom"
+import { Link, Navigate, Route, Routes } from "react-router-dom"
 import { AppLayout } from "./AppLayout"
 import { ProtectedRoute } from "./ProtectedRoute"
 import LandingPage from "@/routes/Landing"
@@ -6,6 +6,7 @@ import LoginPage from "@/routes/Login"
 import RegisterPage from "@/routes/Register"
 import DashboardPage from "@/routes/Dashboard"
 import WritePage from "@/routes/Write"
+import ChatPage from "@/routes/Chat"
 import HistoryPage from "@/routes/History"
 import SessionPage from "@/routes/Session"
 import SettingsPage from "@/routes/Settings"
@@ -23,9 +24,13 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/write" element={<WritePage />} />
-          <Route path="/sessions" element={<HistoryPage />} />
-          <Route path="/sessions/:id" element={<SessionPage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/entries" element={<HistoryPage />} />
+          <Route path="/entries/:id" element={<SessionPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          {/* Old links from the earlier UI */}
+          <Route path="/sessions" element={<Navigate to="/entries" replace />} />
+          <Route path="/sessions/:id" element={<SessionPage />} />
         </Route>
       </Route>
 
