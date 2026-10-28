@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactElement } from "react"
 import { useState } from "react"
 import { LuPhone, LuMessageSquare, LuGlobe, LuShieldAlert, LuX } from "react-icons/lu"
 import {
@@ -12,7 +12,7 @@ import {
 import { useCrisisResources } from "@/features/vent/hooks"
 
 interface Props {
-  trigger?: ReactNode
+  trigger?: ReactElement
   defaultOpen?: boolean
 }
 
@@ -23,7 +23,8 @@ export function CrisisDialog({ trigger, defaultOpen }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger ? (
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogTrigger render={trigger} />
+
       ) : (
         <DialogTrigger className="font-medium underline underline-offset-4 hover:no-underline">
           If you&apos;re in distress, here are some resources.

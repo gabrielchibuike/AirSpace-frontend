@@ -107,8 +107,7 @@ export default function WritePage() {
   // ── Safety notice shown if API returns crisis indicators ─────────
   const safetyNotice = ventResult?.safety_notice ?? reframeResult?.safety_notice
   const needsHumanSupport = reframeResult?.needs_human_support ?? false
-  const crisisResources =
-    ventResult?.crisis_resources ?? reframeResult?.crisis_resources ?? null
+  // Crisis resources available in ventResult/reframeResult if needed
 
   // ════════════════════════════════════════════════════════════════
   // STEP 1 — Before mood check-in

@@ -9,7 +9,7 @@ import { getErrorMessage } from "@/lib/api/errors"
 import { moodLabel } from "@/features/checkins/MoodScale"
 
 export default function DashboardPage() {
-  const { data: user } = useMe()
+  useMe()
   const { data, isPending, error } = useCheckIns()
   const recent = (data ?? []).slice(0, 3) // API returns newest-first (max 100)
 

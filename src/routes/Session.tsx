@@ -82,11 +82,9 @@ export default function SessionPage() {
         </Link>
         <div className="flex items-center gap-2">
           <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive">
-                <LuTrash2 className="h-4 w-4" aria-hidden />
-                Delete
-              </Button>
+            <DialogTrigger render={<Button variant="ghost" size="sm" className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive" />}>
+              <LuTrash2 className="h-4 w-4" aria-hidden />
+              Delete
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>

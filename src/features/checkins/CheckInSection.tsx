@@ -2,35 +2,32 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { MoodScale } from "./MoodScale"
-import { useCheckIns, useCreateCheckIn } from "./hooks"
+import { useCheckIns, useUpdateCheckIn } from "./hooks"
 
 interface Props {
-  sessionId: string
+  checkinId: number
 }
 
-export function CheckInSection({ sessionId }: Props) {
-  const { data: checkIns } = useCheckIns(sessionId)
-  const createCheckIn = useCreateCheckIn()
+export function CheckInSection({ checkinId }: Props) {
+  const { data: checkIns } = useCheckIns()
+  const updateCheckIn = useUpdateCheckIn()
   const [after, setAfter] = useState<number | null>(null)
 
-  const beforeCheckIn = checkIns?.find((c) => c.stage === "before")
-  const afterCheckIn = checkIns?.find((c) => c.stage === "after")
+  const checkin = checkIns?.find((c) => c.id === checkinId)
 
   // If after check-in already exists, show a summary
-  if (afterCheckIn) {
+  if (checkin?.after_score !== null && checkin?.after_score !== undefined) {
     return (
       <section aria-labelledby="checkin-heading" className="space-y-3">
         <h2 id="checkin-heading" className="text-lg">How you felt</h2>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          {beforeCheckIn && (
-            <div className="rounded-xl border bg-card p-4">
-              <p className="text-muted-foreground">Before</p>
-              <p className="mt-1 font-medium capitalize">{beforeCheckIn.value} / 5</p>
-            </div>
-          )}
+          <div className="rounded-xl border bg-card p-4">
+            <p className="text-muted-foreground">Before</p>
+            <p className="mt-1 font-medium capitalize">{checkin.before_score} / 5</p>
+          </div>
           <div className="rounded-xl border bg-card p-4">
             <p className="text-muted-foreground">After</p>
-            <p className="mt-1 font-medium capitalize">{afterCheckIn.value} / 5</p>
+            <p className="mt-1 font-medium capitalize">{checkin.after_score} / 5</p>
           </div>
         </div>
       </section>
@@ -39,8 +36,8 @@ export function CheckInSection({ sessionId }: Props) {
 
   function handleSave() {
     if (after === null) return
-    createCheckIn.mutate(
-      { sessionId, stage: "after", value: after },
+    updateCheckIn.mutate(
+      { id: checkinId, body: { after_score: after } },
       {
         onError: () =>
           toast.error("We couldn't save your mood check-in. Please try again."),
@@ -60,8 +57,8 @@ export function CheckInSection({ sessionId }: Props) {
         value={after}
         onChange={setAfter}
       />
-      <Button onClick={handleSave} disabled={after === null || createCheckIn.isPending}>
-        {createCheckIn.isPending ? "Saving…" : "Record how I feel now"}
+      <Button onClick={handleSave} disabled={after === null || updateCheckIn.isPending}>
+        {updateCheckIn.isPending ? "Saving…" : "Record how I feel now"}
       </Button>
     </section>
   )
