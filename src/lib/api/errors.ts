@@ -57,7 +57,11 @@ export function getErrorMessage(error: unknown): string {
     if (error.status === 409 && error.detail) return error.detail
     if (error.status === 413) return "That recording is too long. Keep it under 10 MB."
     if (error.status === 415) return "That audio format isn't supported. Try recording again."
-    if (error.status === 422) return "Please check the highlighted fields."
+    if (error.status === 422) {
+      return Object.keys(error.fieldErrors).length > 0
+        ? "Please check the highlighted fields."
+        : "We couldn't process that. Try shortening it and send it again."
+    }
     if (error.status === 429) {
       return error.retryAfter
         ? `You're going a little fast. Try again in about ${error.retryAfter} seconds.`
