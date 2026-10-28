@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { PromptStyleSelect } from "@/components/PromptStyleSelect"
 import { SafetyNotice } from "@/components/SafetyNotice"
+import { useCapabilities } from "@/features/capabilities"
 import {
   CHAT_MAX_MESSAGE_CHARS,
   CHAT_MAX_MESSAGES,
@@ -42,6 +43,8 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const chat = useChatTurn()
+  const capabilities = useCapabilities()
+  const textAiProvider = capabilities.data?.text_ai_provider
   const listEnd = useRef<HTMLDivElement | null>(null)
 
   const totalChars = useMemo(
@@ -117,12 +120,13 @@ export default function ChatPage() {
         <div>
           <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
             <LuSparkles className="h-3.5 w-3.5" aria-hidden />
-            AI chat · stateless
+            {capabilities.data?.ai_enabled === false ? "Chat · static fallback" : "AI chat · stateless"}
           </p>
           <h1 className="text-3xl font-light tracking-wide text-foreground">Talk it through</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            A short back-and-forth with an AI companion. This is not therapy, and nothing is saved
-            on the server — closing this page ends the conversation.
+            {capabilities.data?.ai_enabled === false
+              ? "AI replies are unavailable on this server; it will return a static reflection prompt. Nothing is saved on the server."
+              : "A short back-and-forth with an AI companion. This is not therapy, and nothing is saved on the server — closing this page ends the conversation."}
           </p>
         </div>
         {messages.length > 0 && (
@@ -135,7 +139,9 @@ export default function ChatPage() {
 
       {safety && <SafetyNotice notice={safety.notice} resources={safety.resources} />}
 
-      <PromptStyleSelect value={style} onChange={setStyle} disabled={chat.isPending} />
+      {capabilities.data?.ai_enabled !== false && (
+        <PromptStyleSelect value={style} onChange={setStyle} disabled={chat.isPending} />
+      )}
 
       {messages.length === 0 && !safety && (
         <div className="rounded-2xl border-2 border-dashed bg-card p-8 text-center">
@@ -157,7 +163,11 @@ export default function ChatPage() {
               }
             >
               <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                {message.role === "user" ? "You" : "AirSpace · AI, not a therapist"}
+                {message.role === "user"
+                  ? "You"
+                  : capabilities.data?.ai_enabled === false
+                    ? "AirSpace · prompt"
+                    : "AirSpace · AI, not a therapist"}
               </p>
               <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
             </li>
@@ -183,10 +193,16 @@ export default function ChatPage() {
             />
             <span>
               I consent to this conversation being sent to{" "}
-              <strong className="text-foreground">DeepSeek</strong>, an external AI provider, to
-              generate a reply.{" "}
+              {textAiProvider ? (
+                <>
+                  <strong className="text-foreground">{textAiProvider}</strong>, an external AI provider
+                </>
+              ) : (
+                "an external AI provider"
+              )}{" "}
+              to generate a reply. {" "}
               <span className="text-muted-foreground">
-                AirSpace doesn&apos;t store it; DeepSeek handles it under its own terms and privacy policy.
+                AirSpace doesn&apos;t store it; the provider handles it under its own terms and privacy policy.
               </span>
             </span>
           </label>

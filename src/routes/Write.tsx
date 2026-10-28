@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { PromptStyleSelect } from "@/components/PromptStyleSelect"
 import { SafetyNotice } from "@/components/SafetyNotice"
+import { useCapabilities } from "@/features/capabilities"
 import { MoodScale, moodIcon, moodLabel } from "@/features/checkins/MoodScale"
 import { useCreateCheckIn, useUpdateCheckIn } from "@/features/checkins"
 import { useVent, useReframe } from "@/features/vent/hooks"
@@ -46,6 +47,8 @@ export default function WritePage() {
   const updateCheckIn = useUpdateCheckIn()
   const vent = useVent()
   const reframe = useReframe()
+  const capabilities = useCapabilities()
+  const textAiProvider = capabilities.data?.text_ai_provider
 
   // ── Step 1 → 2: the check-in is what makes this entry persist ─────────────
   async function handleContinueToWrite() {
@@ -219,6 +222,9 @@ export default function WritePage() {
           onTranscript={(text) => setVentText((current) => (current ? `${current}\n${text}` : text))}
           onSafety={(notice, resources) => setSafetyFromVoice({ notice, resources })}
           disabled={vent.isPending}
+          transcriptionEnabled={capabilities.data?.transcription_enabled ?? null}
+          capabilitiesError={capabilities.isError}
+          transcriptionProvider={capabilities.data?.transcription_provider ?? null}
         />
 
         {safetyFromVoice && (
@@ -374,7 +380,7 @@ export default function WritePage() {
               <span className="flex items-center gap-1.5 rounded-full border border-ai-border bg-card/50 px-3 py-1 text-xs font-medium text-ai-foreground">
                 <LuSparkles className="h-3 w-3" aria-hidden />
                 {reframeResult?.ai_status === "success" ? "AI reflection" : "Basic prompt"}
-                {reframeResult?.ai_status === "success" && " · DeepSeek"} · Not advice or a diagnosis
+                {reframeResult?.ai_status === "success" && textAiProvider && <> · {textAiProvider}</>} · Not advice or a diagnosis
               </span>
               <span className="text-xs text-muted-foreground">Not stored — read it now</span>
             </div>
@@ -395,10 +401,17 @@ export default function WritePage() {
                 className="mt-0.5"
               />
               <span>
-                I consent to my text being sent to <strong className="text-foreground">DeepSeek</strong>, an
-                external AI provider, to generate a more personalised reflection.{" "}
+                I consent to my text being sent to{" "}
+                {textAiProvider ? (
+                  <>
+                    <strong className="text-foreground">{textAiProvider}</strong>, an external AI provider
+                  </>
+                ) : (
+                  "an external AI provider"
+                )}{" "}
+                to generate a more personalised reflection. {" "}
                 <span className="text-muted-foreground">
-                  AirSpace does not store your words. DeepSeek handles the text under its own terms
+                  AirSpace does not store your words. The provider handles the text under its own terms
                   and privacy policy.
                 </span>
               </span>

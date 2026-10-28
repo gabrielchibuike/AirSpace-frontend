@@ -13,6 +13,9 @@ interface Props {
   onTranscript: (text: string) => void
   onSafety: (notice: string, resources: CrisisResource[] | null) => void
   disabled?: boolean
+  transcriptionEnabled: boolean | null
+  capabilitiesError: boolean
+  transcriptionProvider: string | null
 }
 
 function pickMimeType(): string | undefined {
@@ -30,7 +33,14 @@ function pickMimeType(): string | undefined {
  * Records a short voice note in the browser and sends it to POST /vent/voice.
  * Nothing is uploaded until the user ticks the disclosure and presses Send.
  */
-export function VoiceRecorder({ onTranscript, onSafety, disabled }: Props) {
+export function VoiceRecorder({
+  onTranscript,
+  onSafety,
+  disabled,
+  transcriptionEnabled,
+  capabilitiesError,
+  transcriptionProvider,
+}: Props) {
   const [phase, setPhase] = useState<Phase>("idle")
   const [seconds, setSeconds] = useState(0)
   const [blob, setBlob] = useState<Blob | null>(null)
@@ -156,6 +166,16 @@ export function VoiceRecorder({ onTranscript, onSafety, disabled }: Props) {
     )
   }
 
+  if (transcriptionEnabled !== true) {
+    const message =
+      transcriptionEnabled === false
+        ? "Voice transcription is not enabled on this server yet. You can still type your entry."
+        : capabilitiesError
+          ? "Voice availability could not be checked. You can still type your entry."
+          : "Checking voice transcription availability…"
+    return <p className="text-xs text-muted-foreground">{message}</p>
+  }
+
   const elapsed = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`
 
   return (
@@ -218,8 +238,14 @@ export function VoiceRecorder({ onTranscript, onSafety, disabled }: Props) {
           />
           <span>
             I consent to this recording being sent to{" "}
-            <strong className="text-foreground">ElevenLabs</strong>, an external provider, for
-            transcription. AirSpace does not keep the audio.
+            {transcriptionProvider ? (
+              <>
+                <strong className="text-foreground">{transcriptionProvider}</strong>, an external provider
+              </>
+            ) : (
+              "an external provider"
+            )}{" "}
+            for transcription. AirSpace does not keep the audio.
           </span>
         </label>
       )}

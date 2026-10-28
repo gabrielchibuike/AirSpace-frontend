@@ -38,7 +38,8 @@ export interface CheckInUpdate {
 // ─── API client ──────────────────────────────────────────────────────────────
 
 export const checkInsApi = {
-  list: () => api<CheckInResponse[]>("/checkins"),
+  list: (limit = 100, offset = 0) =>
+    api<CheckInResponse[]>(`/checkins?limit=${limit}&offset=${offset}`),
   create: (body: CheckInCreate) => api<CheckInResponse>("/checkins", { method: "POST", body }),
   update: (id: number, body: CheckInUpdate) =>
     api<CheckInResponse>(`/checkins/${id}`, { method: "PATCH", body }),

@@ -1,17 +1,21 @@
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
 import { LuArrowRight, LuSparkles } from "react-icons/lu"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useCheckIns } from "@/features/checkins"
+import { useInfiniteCheckIns } from "@/features/checkins"
+import { useCapabilities } from "@/features/capabilities"
 import { moodLabel } from "@/features/checkins/MoodScale"
 import { getErrorMessage } from "@/lib/api/errors"
 
-// The API returns newest-first and caps the list at 100 (no pagination yet).
-const API_CAP = 100
+const DEFAULT_PAGE_SIZE = 100
 
 export default function HistoryPage() {
-  const { data, isPending, error } = useCheckIns()
-  const sorted = data ?? []
+  const capabilities = useCapabilities()
+  const pageSize = capabilities.data?.checkins_page_size ?? DEFAULT_PAGE_SIZE
+  const { data, isPending, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteCheckIns(pageSize)
+  const sorted = data?.pages.flat() ?? []
 
   // Group by month, preserving newest-first order
   const groups: Map<string, typeof sorted> = new Map()
@@ -61,13 +65,6 @@ export default function HistoryPage() {
             Start your first entry
           </Link>
         </div>
-      )}
-
-      {data && sorted.length >= API_CAP && (
-        <p className="rounded-xl border bg-secondary/40 px-4 py-3 text-xs text-muted-foreground">
-          The API returns the {API_CAP} most recent entries. Older entries still exist but this
-          screen can&apos;t page to them yet.
-        </p>
       )}
 
       {Array.from(groups.entries()).map(([month, checkins]) => (
@@ -148,6 +145,20 @@ export default function HistoryPage() {
           </div>
         </section>
       ))}
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => void fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "Loading older entries…" : "Load older entries"}
+          </Button>
+        </div>
+      )}
+      {data && !hasNextPage && sorted.length >= pageSize && (
+        <p className="text-center text-xs text-muted-foreground">You’re all caught up.</p>
+      )}
     </div>
   )
 }
