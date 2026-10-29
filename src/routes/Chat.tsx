@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react"
-import { LuSend, LuSparkles, LuTriangleAlert, LuTrash2 } from "react-icons/lu"
+import { LuRefreshCw, LuSend, LuSparkles, LuTriangleAlert, LuTrash2 } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { PromptStyleSelect } from "@/components/PromptStyleSelect"
@@ -123,7 +123,7 @@ export default function ChatPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <div className="min-w-0 flex-1">
           <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
             <LuSparkles className="h-3.5 w-3.5" aria-hidden />
             AI chat · stateless
@@ -221,10 +221,11 @@ export default function ChatPage() {
               type="button"
               variant="ghost"
               size="sm"
-              className="h-auto px-1 py-0 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="h-auto gap-1 px-1 py-0 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
               disabled={chat.isPending}
               onClick={() => send(messages, consent)}
             >
+              <LuRefreshCw className="h-3.5 w-3.5" aria-hidden />
               Retry
             </Button>
           )}
@@ -249,8 +250,8 @@ export default function ChatPage() {
           aria-label="Your message"
           className="min-h-20 resize-y border-0 bg-transparent p-4 text-base shadow-none focus-visible:ring-0"
         />
-        <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
-          <span>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-xs text-muted-foreground">
+          <span className="min-w-0 flex-1">
             {totalChars.toLocaleString()} / {CHAT_MAX_TOTAL_CHARS.toLocaleString()} characters in
             this conversation
           </span>

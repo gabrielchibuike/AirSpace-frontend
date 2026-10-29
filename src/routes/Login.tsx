@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { LuLeaf } from "react-icons/lu"
+import { LuArrowLeft, LuLeaf, LuShieldAlert } from "react-icons/lu"
 import { LoginForm } from "@/features/auth"
 import { CrisisDialog } from "@/components/CrisisDialog"
 
@@ -8,7 +8,7 @@ export default function LoginPage() {
     <div className="flex min-h-svh flex-col bg-background">
       {/* Auth nav */}
       <header className="border-b bg-card/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-2 px-4 py-3">
           <Link to="/" className="flex flex-col leading-none">
             <span className="font-heading text-base font-semibold tracking-tight text-primary">
               AirSpace
@@ -17,13 +17,17 @@ export default function LoginPage() {
               Vent and Decompress
             </span>
           </Link>
-          <div className="flex items-center gap-4 text-sm">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-sm">
+            <Link to="/" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+              <LuArrowLeft className="h-4 w-4" aria-hidden />
               Back to home
             </Link>
             <CrisisDialog
               trigger={
-                <button className="text-[#B3261E] hover:underline">Need urgent help?</button>
+                <button className="inline-flex items-center gap-1 text-[#B3261E] hover:underline">
+                  <LuShieldAlert className="h-4 w-4" aria-hidden />
+                  Need urgent help?
+                </button>
               }
             />
           </div>
@@ -63,7 +67,8 @@ export default function LoginPage() {
           </div>
           <CrisisDialog
             trigger={
-              <button className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors">
+              <button className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors">
+                <LuShieldAlert className="h-4 w-4" aria-hidden />
                 Resources
               </button>
             }

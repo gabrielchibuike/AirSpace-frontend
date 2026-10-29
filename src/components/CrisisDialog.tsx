@@ -26,18 +26,19 @@ export function CrisisDialog({ trigger, defaultOpen }: Props) {
         <DialogTrigger render={trigger} />
 
       ) : (
-        <DialogTrigger className="font-medium underline underline-offset-4 hover:no-underline">
+        <DialogTrigger className="inline-flex items-center gap-1.5 font-medium underline underline-offset-4 hover:no-underline">
+          <LuShieldAlert className="h-4 w-4" aria-hidden />
           If you&apos;re in distress, here are some resources.
         </DialogTrigger>
       )}
 
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <LuShieldAlert className="h-5 w-5" aria-hidden />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <DialogTitle className="text-lg">Need urgent help?</DialogTitle>
               <DialogDescription className="text-sm">
                 Free, confidential support available 24/7
@@ -71,8 +72,8 @@ export function CrisisDialog({ trigger, defaultOpen }: Props) {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-foreground">{r.name}</p>
-                    <p className="text-sm text-muted-foreground">{r.description}</p>
+                    <p className="break-words font-semibold text-foreground">{r.name}</p>
+                    <p className="break-words text-sm text-muted-foreground">{r.description}</p>
                   </div>
                   <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
                     {r.hours}
@@ -134,8 +135,8 @@ export function CrisisDialog({ trigger, defaultOpen }: Props) {
           </ul>
         )}
 
-        <div className="flex items-center justify-between border-t pt-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">
+          <p className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-muted-foreground">
             <LuGlobe className="h-4 w-4" aria-hidden />
             You do not have to carry this alone.
           </p>

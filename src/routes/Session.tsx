@@ -2,7 +2,15 @@ import { useState } from "react"
 import { format } from "date-fns"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
-import { LuArrowLeft, LuSparkles, LuTrash2, LuTriangleAlert } from "react-icons/lu"
+import {
+  LuArrowLeft,
+  LuCheck,
+  LuPencil,
+  LuSparkles,
+  LuTrash2,
+  LuTriangleAlert,
+  LuX,
+} from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SafetyNotice } from "@/components/SafetyNotice"
@@ -194,8 +202,12 @@ export default function SessionPage() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="mt-4">
-              <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
-              <Button variant="destructive" onClick={handleDelete} disabled={deleteCheckIn.isPending}>
+              <DialogClose render={<Button variant="ghost" className="gap-1.5" />}>
+                <LuX className="h-4 w-4" aria-hidden />
+                Cancel
+              </DialogClose>
+              <Button variant="destructive" className="gap-1.5" onClick={handleDelete} disabled={deleteCheckIn.isPending}>
+                {!deleteCheckIn.isPending && <LuTrash2 className="h-4 w-4" aria-hidden />}
                 {deleteCheckIn.isPending ? "Deleting…" : "Yes, delete"}
               </Button>
             </DialogFooter>
@@ -223,7 +235,8 @@ export default function SessionPage() {
               {noteDraft.length}/{NOTE_MAX} characters
             </span>
           ) : (
-            <Button variant="ghost" size="xs" onClick={startEditing}>
+            <Button variant="ghost" size="xs" className="gap-1.5" onClick={startEditing}>
+              <LuPencil className="h-3.5 w-3.5" aria-hidden />
               Edit note
             </Button>
           )}
@@ -248,10 +261,12 @@ export default function SessionPage() {
               className="h-9 w-full rounded-lg border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" onClick={saveNote} disabled={updateCheckIn.isPending}>
+              <Button size="sm" className="gap-1.5" onClick={saveNote} disabled={updateCheckIn.isPending}>
+                {!updateCheckIn.isPending && <LuCheck className="h-4 w-4" aria-hidden />}
                 {updateCheckIn.isPending ? "Saving…" : "Save note"}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
+              <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => setEditing(false)}>
+                <LuX className="h-4 w-4" aria-hidden />
                 Cancel
               </Button>
             </div>
@@ -421,4 +436,3 @@ export default function SessionPage() {
     </article>
   )
 }
-

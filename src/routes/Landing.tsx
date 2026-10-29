@@ -1,5 +1,16 @@
 import { Link } from "react-router-dom"
-import { LuPenLine, LuSparkles, LuActivity, LuLock, LuTrash2, LuShieldCheck } from "react-icons/lu"
+import {
+  LuArrowRight,
+  LuPenLine,
+  LuSparkles,
+  LuActivity,
+  LuLock,
+  LuTrash2,
+  LuShieldCheck,
+  LuShieldAlert,
+  LuLogIn,
+  LuCircleUserRound,
+} from "react-icons/lu"
 import { CrisisDialog } from "@/components/CrisisDialog"
 
 export default function LandingPage() {
@@ -34,20 +45,23 @@ export default function LandingPage() {
           <CrisisDialog
             trigger={
               <button className="hidden text-sm text-muted-foreground hover:text-foreground transition-colors sm:inline">
+                <LuShieldAlert className="mr-1 inline h-4 w-4" aria-hidden />
                 Support Resources
               </button>
             }
           />
           <Link
             to="/login"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
+            <LuLogIn className="h-4 w-4" aria-hidden />
             Log In
           </Link>
           <Link
             to="/register"
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
           >
+            <LuCircleUserRound className="h-4 w-4" aria-hidden />
             <span className="hidden sm:inline">Start airing it out</span>
             <span className="sm:hidden">Get started</span>
           </Link>
@@ -55,7 +69,7 @@ export default function LandingPage() {
       </header>
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center sm:gap-8 sm:py-20">
+      <section className="landing-hero flex min-h-[34rem] w-full flex-col items-center justify-center gap-6 px-4 py-12 text-center sm:min-h-[38rem] sm:gap-8 sm:py-20">
         {/* Badge */}
         <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
           · Vent and Decompress
@@ -74,12 +88,14 @@ export default function LandingPage() {
             to="/register"
             className="inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            Start airing it out →
+            Start airing it out
+            <LuArrowRight className="h-4 w-4" aria-hidden />
           </Link>
           <Link
             to="/login"
-            className="inline-flex h-11 min-w-24 items-center justify-center rounded-lg px-6 text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex h-11 min-w-24 items-center justify-center gap-1.5 rounded-lg px-6 text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
+            <LuLogIn className="h-4 w-4" aria-hidden />
             Log in
           </Link>
         </div>
@@ -232,18 +248,19 @@ export default function LandingPage() {
             to="/register"
             className="inline-flex h-12 min-w-48 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
           >
-            Open the canvas →
+            Open the canvas
+            <LuArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
       </section>
 
       {/* ── Crisis strip ────────────────────────────────────────────── */}
       <section className="border-t bg-secondary/30 px-4 py-8">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-start gap-4">
+        <div className="mx-auto grid max-w-3xl grid-cols-1 items-start gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
             <LuShieldCheck className="h-5 w-5" aria-hidden />
           </div>
-          <div className="flex-1">
+          <div className="min-w-0">
             <p className="font-semibold text-foreground">AirSpace isn&apos;t therapy or an emergency service.</p>
             <p className="mt-1 text-sm text-muted-foreground">
               If you are navigating a severe mental health crisis, experiencing suicidal ideation,
@@ -258,8 +275,10 @@ export default function LandingPage() {
           </div>
           <CrisisDialog
             trigger={
-              <button className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent">
-                View Crisis Resources →
+              <button className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent sm:w-auto">
+                <LuShieldCheck className="h-4 w-4" aria-hidden />
+                View Crisis Resources
+                <LuArrowRight className="h-4 w-4" aria-hidden />
               </button>
             }
           />
