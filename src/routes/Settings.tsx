@@ -267,9 +267,9 @@ export default function SettingsPage() {
               and discarded.
             </li>
             <li>
-              <strong className="text-foreground">Third parties:</strong> when you consent, text goes
-              to DeepSeek and voice recordings go to ElevenLabs. The app has no analytics or error
-              tracking installed.
+              <strong className="text-foreground">Third parties:</strong> when you consent, chat goes
+              to Groq, reflections go to DeepSeek, and voice recordings go to ElevenLabs. The app has
+              no analytics or error tracking installed.
             </li>
           </ul>
         </div>
@@ -277,7 +277,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground text-center">
           {[
             "Stored: scores, notes, email",
-            "Never stored: vents, audio, chat",
+            "Not stored: full vents, audio, chat",
             "Delete everything in one step",
           ].map((item) => (
             <div key={item} className="flex flex-col items-center gap-1.5 rounded-lg bg-muted p-2">

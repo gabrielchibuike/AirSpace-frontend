@@ -20,6 +20,12 @@ interface SafetyState {
   resources: CrisisResource[] | null
 }
 
+function isRetryableChatError(error: unknown): boolean {
+  if (error instanceof ApiError) return error.status >= 500
+  if (error instanceof TypeError) return true
+  return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")
+}
+
 /** Keep the conversation inside the server's limits without dropping the newest turn. */
 function fitToLimits(messages: ChatMessage[]): ChatMessage[] {
   let list = messages.slice(-CHAT_MAX_MESSAGES).map((m) => ({
@@ -40,6 +46,7 @@ export default function ChatPage() {
   const [needsConsent, setNeedsConsent] = useState(false)
   const [safety, setSafety] = useState<SafetyState | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [canRetry, setCanRetry] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const chat = useChatTurn()
   const listEnd = useRef<HTMLDivElement | null>(null)
@@ -51,6 +58,7 @@ export default function ChatPage() {
 
   function send(list: ChatMessage[], consentFlag: boolean) {
     setError(null)
+    setCanRetry(false)
     setNote(null)
     chat.mutate(
       { messages: list, prompt_style: style, consent_to_ai_processing: consentFlag },
@@ -80,6 +88,7 @@ export default function ChatPage() {
         },
         onError: (e) => {
           setError(getErrorMessage(e))
+          setCanRetry(isRetryableChatError(e))
           if (e instanceof ApiError && e.status === 429) setNote(null)
         },
       },
@@ -183,10 +192,11 @@ export default function ChatPage() {
             />
             <span>
               I consent to this conversation being sent to{" "}
-              <strong className="text-foreground">DeepSeek</strong>, an external AI provider, to
+              <strong className="text-foreground">Groq</strong>, an external AI provider, to
               generate a reply.{" "}
               <span className="text-muted-foreground">
-                AirSpace doesn&apos;t store it; DeepSeek handles it under its own terms and privacy policy.
+                AirSpace doesn&apos;t store it; Groq may keep logs for up to 30 days for reliability and
+                abuse checks under its own terms.
               </span>
             </span>
           </label>
@@ -203,10 +213,22 @@ export default function ChatPage() {
       )}
 
       {error && (
-        <p role="alert" className="flex items-start gap-2 text-sm text-destructive">
+        <div role="alert" className="flex flex-wrap items-center gap-2 text-sm text-destructive">
           <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          {error}
-        </p>
+          <span>{error}</span>
+          {canRetry && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto px-1 py-0 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              disabled={chat.isPending}
+              onClick={() => send(messages, consent)}
+            >
+              Retry
+            </Button>
+          )}
+        </div>
       )}
 
       {note && <p className="text-xs text-muted-foreground">{note}</p>}

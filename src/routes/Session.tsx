@@ -70,6 +70,18 @@ export default function SessionPage() {
 
   const c = checkin
 
+  const activeNotice = notice ?? (
+    c.safety_notice ? { notice: c.safety_notice, resources: c.crisis_resources } : null
+  )
+
+  if (activeNotice) {
+    return (
+      <article className="space-y-6">
+        <SafetyNotice notice={activeNotice.notice} resources={activeNotice.resources} />
+      </article>
+    )
+  }
+
   function handleDelete() {
     deleteCheckIn.mutate(c.id, {
       onSuccess: () => {
@@ -87,7 +99,13 @@ export default function SessionPage() {
     updateCheckIn.mutate(
       { id: c.id, body: { after_score: after } },
       {
-        onSuccess: () => toast.success("Closing score saved"),
+        onSuccess: (result) => {
+          if (result.safety_notice) {
+            setNotice({ notice: result.safety_notice, resources: result.crisis_resources })
+            return
+          }
+          toast.success("Closing score saved")
+        },
         onError: (e) => setActionError(getErrorMessage(e)),
       },
     )
@@ -111,7 +129,12 @@ export default function SessionPage() {
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: (result) => {
+          if (result.safety_notice) {
+            setNotice({ notice: result.safety_notice, resources: result.crisis_resources })
+            setEditing(false)
+            return
+          }
           setEditing(false)
           toast.success("Note updated")
         },
@@ -188,12 +211,6 @@ export default function SessionPage() {
           Stored in your account · visible wherever you are signed in
         </p>
       </div>
-
-      {notice && <SafetyNotice notice={notice.notice} resources={notice.resources} />}
-
-      {c.safety_notice && !notice && (
-        <SafetyNotice notice={c.safety_notice} resources={c.crisis_resources} />
-      )}
 
       <section aria-label="Your note" className="rounded-2xl border-l-4 border-primary bg-card p-6 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">

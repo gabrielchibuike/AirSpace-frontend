@@ -73,6 +73,9 @@ export default function WritePage() {
     try {
       const result = await vent.mutateAsync({ text })
       setVentResult(result)
+      if (result.safety_notice) {
+        setSafetyFromVoice({ notice: result.safety_notice, resources: result.crisis_resources })
+      }
 
       // The note is the only part of the writing that is stored, so say so and
       // save exactly what will be shown back to the user later.
@@ -342,7 +345,7 @@ export default function WritePage() {
         {ventResult && (
           <div className="rounded-2xl border-l-4 border-primary bg-card p-5 shadow-sm">
             <p className="mb-3 flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              <span>What you said</span>
+              <span>A note back</span>
               {noteSaved !== null && <span className="normal-case">Note saved · {noteSaved} characters</span>}
             </p>
             <p className="text-base italic leading-relaxed text-muted-foreground">

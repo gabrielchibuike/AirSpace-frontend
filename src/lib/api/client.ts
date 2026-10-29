@@ -16,7 +16,7 @@ export const setUnauthorizedHandler = (fn: () => void) => {
   onUnauthorized = fn
 }
 
-// Token is stored in memory only; written once on login/register and cleared on logout.
+// The active token is kept in memory here; tokenStore also mirrors it in sessionStorage.
 let _token: string | null = null
 export const setToken = (t: string | null) => {
   _token = t
@@ -42,6 +42,7 @@ async function readError(res: Response, path: string) {
 export async function api<T>(path: string, { body, headers, ...init }: Options = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
+    signal: init.signal === undefined ? AbortSignal.timeout(30_000) : init.signal,
     headers: {
       Accept: "application/json",
       ...(body !== undefined && { "Content-Type": "application/json" }),
@@ -61,9 +62,14 @@ export async function api<T>(path: string, { body, headers, ...init }: Options =
  * Multipart upload for the voice vent endpoint. The browser sets the boundary,
  * so no Content-Type header is passed here.
  */
-export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
+export async function apiUpload<T>(
+  path: string,
+  form: FormData,
+  { signal }: Pick<RequestInit, "signal"> = {},
+): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",
+    signal: signal === undefined ? AbortSignal.timeout(60_000) : signal,
     headers: { Accept: "application/json", ...authHeaders() },
     body: form,
   })
