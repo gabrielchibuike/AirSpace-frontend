@@ -198,7 +198,7 @@ export default function LandingPage() {
               {
                 icon: <LuSparkles className="h-5 w-5" aria-hidden />,
                 title: "You choose when AI sees it",
-                body: "Reflections and chat replies only happen after you tick a disclosure naming the provider: DeepSeek for text and ElevenLabs for voice. Without consent, you still get static prompts.",
+                body: "Reflections and chat replies only happen after you tick a disclosure naming the provider: Groq for chat, DeepSeek for reflections, and ElevenLabs for voice. Without consent, you still get static prompts.",
               },
             ].map((item) => (
               <div key={item.title} className="flex flex-col gap-3">

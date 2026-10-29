@@ -267,9 +267,9 @@ export default function SettingsPage() {
               and discarded.
             </li>
             <li>
-              <strong className="text-foreground">Third parties:</strong> when you consent, text goes
-              to DeepSeek and voice recordings go to ElevenLabs. The app has no analytics or error
-              tracking installed.
+              <strong className="text-foreground">Third parties:</strong> when you consent, chat goes
+              to Groq, reflections go to DeepSeek, and voice recordings go to ElevenLabs. The app has
+              no analytics or error tracking installed.
             </li>
           </ul>
         </div>

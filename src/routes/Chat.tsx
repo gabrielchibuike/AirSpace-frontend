@@ -192,10 +192,11 @@ export default function ChatPage() {
             />
             <span>
               I consent to this conversation being sent to{" "}
-              <strong className="text-foreground">DeepSeek</strong>, an external AI provider, to
+              <strong className="text-foreground">Groq</strong>, an external AI provider, to
               generate a reply.{" "}
               <span className="text-muted-foreground">
-                AirSpace doesn&apos;t store it; DeepSeek handles it under its own terms and privacy policy.
+                AirSpace doesn&apos;t store it; Groq may keep logs for up to 30 days for reliability and
+                abuse checks under its own terms.
               </span>
             </span>
           </label>
