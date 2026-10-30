@@ -8,6 +8,7 @@ import DashboardPage from "@/routes/Dashboard"
 import WritePage from "@/routes/Write"
 import ChatPage from "@/routes/Chat"
 import HistoryPage from "@/routes/History"
+import ProgressPage from "@/routes/Progress"
 import SessionPage from "@/routes/Session"
 import SettingsPage from "@/routes/Settings"
 
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/entries" element={<HistoryPage />} />
           <Route path="/entries/:id" element={<SessionPage />} />
+          <Route path="/progress" element={<ProgressPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           {/* Old links from the earlier UI */}
           <Route path="/sessions" element={<Navigate to="/entries" replace />} />

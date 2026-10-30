@@ -1,28 +1,76 @@
-import { useState } from "react"
-import { NavLink, Outlet } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { NavLink, Outlet, useLocation } from "react-router-dom"
 import {
-  LuLogOut,
+  LuBookOpen,
+  LuChartNoAxesColumnIncreasing,
   LuCircleUserRound,
+  LuHouse,
+  LuLogOut,
   LuShieldAlert,
-  LuMenu,
-  LuX,
 } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { CrisisDialog } from "@/components/CrisisDialog"
 import { CrisisFooter } from "@/components/CrisisFooter"
 import { useLogout, useMe } from "@/features/auth"
 
-const NAV_LINKS = [
+const DESKTOP_LINKS = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/chat", label: "Chat" },
   { to: "/entries", label: "History" },
   { to: "/settings", label: "Settings" },
 ]
 
+const MOBILE_LINKS = [
+  { to: "/dashboard", label: "Home", icon: LuHouse },
+  { to: "/entries", label: "Reflections", icon: LuBookOpen },
+  { to: "/progress", label: "Progress", icon: LuChartNoAxesColumnIncreasing },
+  { to: "/settings", label: "Profile", icon: LuCircleUserRound },
+]
+
+function isEditingTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.matches("input, textarea, select, [contenteditable='true']") ||
+      !!target.closest("[contenteditable='true']"))
+  )
+}
+
 export function AppLayout() {
   const logout = useLogout()
   const { data: user } = useMe()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const { pathname } = useLocation()
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
+
+  useEffect(() => {
+    const updateKeyboardState = () => {
+      const viewport = window.visualViewport
+      setKeyboardOpen(!!viewport && viewport.height < window.innerHeight * 0.75)
+    }
+    const handleFocusIn = (event: FocusEvent) => {
+      if (isEditingTarget(event.target)) setKeyboardOpen(true)
+    }
+    const handleFocusOut = () => {
+      window.setTimeout(() => {
+        setKeyboardOpen(isEditingTarget(document.activeElement))
+      }, 0)
+    }
+
+    window.visualViewport?.addEventListener("resize", updateKeyboardState)
+    window.addEventListener("resize", updateKeyboardState)
+    document.addEventListener("focusin", handleFocusIn)
+    document.addEventListener("focusout", handleFocusOut)
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateKeyboardState)
+      window.removeEventListener("resize", updateKeyboardState)
+      document.removeEventListener("focusin", handleFocusIn)
+      document.removeEventListener("focusout", handleFocusOut)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   const initials = user?.email
     ? user.email.slice(0, 2).toUpperCase()
@@ -30,18 +78,12 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      {/* ── Top nav ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur-sm">
+      <header className="mobile-app-header sticky top-0 z-30 border-b bg-card/95 backdrop-blur-sm">
         <nav
           aria-label="Main"
-          className="mx-auto flex max-w-4xl items-center gap-1 px-4 py-2.5"
+          className="mx-auto flex max-w-4xl items-center gap-1 px-4 py-2.5 sm:px-6"
         >
-          {/* Logo */}
-          <NavLink
-            to="/dashboard"
-            className="mr-3 flex flex-col leading-none"
-            onClick={() => setMenuOpen(false)}
-          >
+          <NavLink to="/dashboard" className="mr-3 flex min-w-0 flex-col leading-none">
             <span className="font-heading text-sm font-semibold tracking-tight text-primary">
               AirSpace
             </span>
@@ -50,12 +92,12 @@ export function AppLayout() {
             </span>
           </NavLink>
 
-          {/* Desktop page links */}
-          <div className="hidden sm:flex sm:items-center sm:gap-1">
-            {NAV_LINKS.map((l) => (
+          <div className="hidden items-center gap-1 sm:flex">
+            {DESKTOP_LINKS.map((link) => (
               <NavLink
-                key={l.to}
-                to={l.to}
+                key={link.to}
+                to={link.to}
+                end={link.to === "/dashboard"}
                 className={({ isActive }) =>
                   [
                     "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
@@ -65,18 +107,16 @@ export function AppLayout() {
                   ].join(" ")
                 }
               >
-                {l.label}
+                {link.label}
               </NavLink>
             ))}
           </div>
 
-          {/* Right side */}
-          <div className="ml-auto flex items-center gap-1.5">
-            {/* Crisis button (always visible) */}
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <CrisisDialog
               trigger={
                 <button
-                  className="flex items-center gap-1.5 rounded-lg p-2 text-destructive hover:bg-destructive/10 transition-colors"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-destructive transition-colors hover:bg-destructive/10 sm:w-auto sm:gap-1.5 sm:px-2"
                   aria-label="Need urgent help? View crisis resources"
                   title="Need urgent help?"
                 >
@@ -86,7 +126,6 @@ export function AppLayout() {
               }
             />
 
-            {/* Logout — desktop only */}
             <Button
               variant="ghost"
               size="sm"
@@ -96,85 +135,54 @@ export function AppLayout() {
               disabled={logout.isPending}
             >
               <LuLogOut className="h-4 w-4" aria-hidden />
-              <span className="sr-only sm:not-sr-only text-sm">Log out</span>
+              <span className="text-sm">Log out</span>
             </Button>
 
-            {/* User avatar */}
-            <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
-              aria-label={`Logged in as ${user?.email ?? "user"}`}
+            <NavLink
+              to="/settings"
+              aria-label={`Account settings for ${user?.email ?? "user"}`}
               title={user?.email}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {typeof initials === "string" ? initials : initials}
-            </div>
-
-            {/* Hamburger (mobile only) */}
-            <button
-              type="button"
-              className="ml-1 flex h-8 w-8 items-center justify-center rounded-lg border text-muted-foreground hover:bg-accent transition-colors sm:hidden"
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              {menuOpen ? (
-                <LuX className="h-4 w-4" aria-hidden />
-              ) : (
-                <LuMenu className="h-4 w-4" aria-hidden />
-              )}
-            </button>
+            </NavLink>
           </div>
         </nav>
-
-        {/* Mobile drawer */}
-        {menuOpen && (
-          <div className="border-t bg-card px-4 py-3 sm:hidden" role="menu">
-            <nav aria-label="Mobile navigation">
-              {NAV_LINKS.map((l) => (
-                <NavLink
-                  key={l.to}
-                  to={l.to}
-                  role="menuitem"
-                  className={({ isActive }) =>
-                    [
-                      "flex w-full items-center rounded-xl px-3 py-3 text-base font-medium transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-foreground hover:bg-accent",
-                    ].join(" ")
-                  }
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {l.label}
-                </NavLink>
-              ))}
-              <div className="mt-3 border-t pt-3">
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-base font-medium text-muted-foreground hover:bg-accent transition-colors"
-                  onClick={() => {
-                    logout.mutate()
-                    setMenuOpen(false)
-                  }}
-                  disabled={logout.isPending}
-                >
-                  <LuLogOut className="h-5 w-5" aria-hidden />
-                  {logout.isPending ? "Logging out…" : "Log out"}
-                </button>
-              </div>
-            </nav>
-          </div>
-        )}
       </header>
 
-      {/* ── Page content ────────────────────────────────────────────── */}
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:py-10">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 pb-32 sm:px-6 sm:py-10 sm:pb-10">
         <Outlet />
       </main>
 
-      {/* ── Footer ──────────────────────────────────────────────────── */}
-      <div className="border-t px-4 py-4">
+      <div className="border-t px-4 py-4 pb-24 sm:px-6 sm:pb-4">
         <CrisisFooter />
       </div>
+
+      {!keyboardOpen && (
+        <nav
+          aria-label="Mobile navigation"
+          className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 mx-auto flex w-[calc(100%-2rem)] max-w-sm items-stretch justify-around rounded-2xl border p-1.5 sm:hidden"
+        >
+          {MOBILE_LINKS.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to !== "/entries"}
+              className={({ isActive }) =>
+                [
+                  "flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 text-[11px] font-medium leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                ].join(" ")
+              }
+            >
+              <Icon className="h-5 w-5 shrink-0" aria-hidden />
+              <span className="truncate">{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   )
 }

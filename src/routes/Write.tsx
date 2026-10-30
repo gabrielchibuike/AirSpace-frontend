@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LuArrowRight, LuSparkles, LuTriangleAlert } from "react-icons/lu"
+import { LuArrowLeft, LuArrowRight, LuCheck, LuSparkles, LuTriangleAlert } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { PromptStyleSelect } from "@/components/PromptStyleSelect"
@@ -198,7 +198,7 @@ export default function WritePage() {
 
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
             Step 2 of 3 · Air it out
           </p>
@@ -229,7 +229,7 @@ export default function WritePage() {
         )}
 
         <div className="rounded-2xl border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b px-4 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               <span className="h-1.5 w-8 rounded-full bg-primary" aria-hidden />
               Your words
@@ -249,9 +249,9 @@ export default function WritePage() {
             onChange={(e) => setVentText(e.target.value)}
             aria-label="Your words"
           />
-          <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
-            <span>Only the first {NOTE_MAX} characters are kept as the entry note.</span>
-            <span>
+          <div className="flex flex-col gap-1 border-t px-4 py-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span className="min-w-0">Only the first {NOTE_MAX} characters are kept as the entry note.</span>
+            <span className="shrink-0">
               {wordCount} word{wordCount !== 1 ? "s" : ""} · {charCount.toLocaleString()} characters
             </span>
           </div>
@@ -317,10 +317,12 @@ export default function WritePage() {
         <div className="mx-auto max-w-2xl space-y-6">
           <SafetyNotice notice={safetyNotice} resources={safetyResources} />
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" size="lg" onClick={() => navigate("/entries", { replace: true })}>
+            <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/entries", { replace: true })}>
+              <LuArrowLeft className="h-4 w-4" aria-hidden />
               Go to my entries
             </Button>
-            <Button variant="ghost" size="lg" onClick={() => setStep("after")}>
+            <Button variant="ghost" size="lg" className="gap-2" onClick={() => setStep("after")}>
+              <LuArrowRight className="h-4 w-4" aria-hidden />
               Record how I feel now
             </Button>
           </div>
@@ -330,7 +332,7 @@ export default function WritePage() {
 
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
             Step 3 of 3 · Decompress &amp; reflect
@@ -537,13 +539,16 @@ export default function WritePage() {
           disabled={afterScore === null || updateCheckIn.isPending}
           onClick={handleFinish}
         >
+          {!updateCheckIn.isPending && <LuCheck className="h-4 w-4" aria-hidden />}
           {updateCheckIn.isPending ? "Saving…" : "Save and finish"}
         </Button>
         <Button
           variant="outline"
           size="lg"
+          className="gap-2"
           onClick={() => navigate(checkin ? `/entries/${checkin.id}` : "/entries", { replace: true })}
         >
+          <LuArrowLeft className="h-4 w-4" aria-hidden />
           Skip the closing score
         </Button>
       </div>

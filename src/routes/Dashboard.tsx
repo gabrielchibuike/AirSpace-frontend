@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
-import { LuArrowRight, LuSparkles, LuMessageCircle } from "react-icons/lu"
-import { Button } from "@/components/ui/button"
+import { LuArrowRight, LuMessageCircle, LuPenLine, LuSparkles } from "react-icons/lu"
+import { buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCheckIns } from "@/features/checkins"
 import { useMe } from "@/features/auth"
@@ -20,7 +20,7 @@ export default function DashboardPage() {
           <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Sanctuary space
           </p>
-          <h1 className="text-3xl font-light tracking-wide">
+          <h1 className="break-words text-3xl font-light tracking-wide">
             {user?.email ? `Welcome back, ${user.email.split("@")[0]}.` : "Welcome back."}
           </h1>
           <p className="mt-1 text-muted-foreground">
@@ -33,7 +33,7 @@ export default function DashboardPage() {
         </span>
       </div>
 
-      <section aria-labelledby="cta-heading" className="rounded-2xl border bg-card p-8 shadow-sm">
+      <section aria-labelledby="cta-heading" className="rounded-2xl border bg-card p-5 shadow-sm sm:p-8">
         <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
           <LuSparkles className="h-3.5 w-3.5" aria-hidden />
           Air it out
@@ -46,25 +46,32 @@ export default function DashboardPage() {
           what shifted afterwards. You can type or record your voice.
         </p>
         <div className="flex flex-wrap items-center gap-5">
-          <Button size="lg" className="gap-2" render={<Link to="/write" />}>
+          <Link to="/write" className={buttonVariants({ size: "lg", className: "min-h-11 gap-2" })}>
             Begin session <LuArrowRight className="h-4 w-4" aria-hidden />
-          </Button>
-          <Button variant="secondary" size="lg" className="gap-2" render={<Link to="/chat" />}>
+          </Link>
+          <Link
+            to="/chat"
+            className={buttonVariants({
+              variant: "secondary",
+              size: "lg",
+              className: "min-h-11 gap-2",
+            })}
+          >
             <LuMessageCircle className="h-4 w-4" aria-hidden />
             Or talk it through
-          </Button>
+          </Link>
           <p className="text-xs text-muted-foreground">No timer, no rush</p>
         </div>
       </section>
 
       <section aria-labelledby="recent-heading">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 id="recent-heading" className="text-xl font-light tracking-wide">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 id="recent-heading" className="min-w-0 text-xl font-light tracking-wide">
             Recent entries ({data?.length ?? "…"})
           </h2>
           <Link
             to="/entries"
-            className="flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
           >
             View all <LuArrowRight className="h-4 w-4" aria-hidden />
           </Link>
@@ -89,9 +96,13 @@ export default function DashboardPage() {
             <p className="text-muted-foreground">
               Your entries will appear here once you&apos;ve written one.
             </p>
-            <Button className="mt-4" size="lg" render={<Link to="/write" />}>
+            <Link
+              to="/write"
+              className={buttonVariants({ size: "lg", className: "mt-4 min-h-11 gap-2" })}
+            >
+              <LuPenLine className="h-4 w-4" aria-hidden />
               Start writing
-            </Button>
+            </Link>
           </div>
         )}
 

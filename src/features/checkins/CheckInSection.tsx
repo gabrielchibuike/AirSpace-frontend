@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { LuCheck } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { MoodScale } from "./MoodScale"
 import { useCheckIns, useUpdateCheckIn } from "./hooks"
@@ -57,7 +58,8 @@ export function CheckInSection({ checkinId }: Props) {
         value={after}
         onChange={setAfter}
       />
-      <Button onClick={handleSave} disabled={after === null || updateCheckIn.isPending}>
+      <Button className="gap-1.5" onClick={handleSave} disabled={after === null || updateCheckIn.isPending}>
+        {!updateCheckIn.isPending && <LuCheck className="h-4 w-4" aria-hidden />}
         {updateCheckIn.isPending ? "Saving…" : "Record how I feel now"}
       </Button>
     </section>

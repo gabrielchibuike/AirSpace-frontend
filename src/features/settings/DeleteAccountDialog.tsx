@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { LuTrash2, LuX } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -33,7 +34,8 @@ export function DeleteAccountDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="destructive" />}>
+      <DialogTrigger render={<Button variant="destructive" className="gap-1.5" />}>
+        <LuTrash2 className="h-4 w-4" aria-hidden />
         Delete my account
       </DialogTrigger>
       <DialogContent>
@@ -45,10 +47,12 @@ export function DeleteAccountDialog() {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4">
-          <DialogClose render={<Button variant="ghost" />}>
+          <DialogClose render={<Button variant="ghost" className="gap-1.5" />}>
+            <LuX className="h-4 w-4" aria-hidden />
             Cancel
           </DialogClose>
-          <Button variant="destructive" onClick={handleConfirm} disabled={isPending}>
+          <Button variant="destructive" className="gap-1.5" onClick={handleConfirm} disabled={isPending}>
+            {!isPending && <LuTrash2 className="h-4 w-4" aria-hidden />}
             {isPending ? "Deleting…" : "Yes, delete everything"}
           </Button>
         </DialogFooter>

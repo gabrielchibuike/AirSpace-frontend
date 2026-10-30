@@ -6,6 +6,7 @@ import {
   LuMoon,
   LuMonitor,
   LuCheck,
+  LuLogOut,
 } from "react-icons/lu"
 import { Separator } from "@/components/ui/separator"
 import { DeleteAccountDialog } from "@/features/settings"
@@ -111,11 +112,12 @@ export default function SettingsPage() {
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5 w-full sm:w-auto"
+          className="w-full gap-1.5 sm:w-auto"
           onClick={() => logout.mutate()}
           disabled={logout.isPending}
         >
-          {logout.isPending ? "Logging out…" : "→ Log out of AirSpace"}
+          {!logout.isPending && <LuLogOut className="h-4 w-4" aria-hidden />}
+          {logout.isPending ? "Logging out…" : "Log out of AirSpace"}
         </Button>
       </section>
 
@@ -274,7 +276,7 @@ export default function SettingsPage() {
           </ul>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground text-center">
+        <div className="grid gap-2 text-center text-xs text-muted-foreground sm:grid-cols-3">
           {[
             "Stored: scores, notes, email",
             "Not stored: full vents, audio, chat",

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { LuEye, LuEyeOff } from "react-icons/lu"
+import { LuArrowRight, LuEye, LuEyeOff } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -50,7 +50,7 @@ export function LoginForm() {
       )}
 
       <div className="space-y-1.5">
-        <div className="flex items-baseline justify-between">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2">
           <Label htmlFor="email">Email or username</Label>
           <span className="text-xs text-muted-foreground">Private &amp; pseudonymous</span>
         </div>
@@ -71,7 +71,7 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <div className="flex items-baseline justify-between">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2">
           <Label htmlFor="password">Secret passphrase</Label>
           <button
             type="button"
@@ -107,7 +107,8 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" size="lg" className="mt-2 w-full gap-2" disabled={login.isPending}>
-        {login.isPending ? "Logging in…" : "Log in to stillness →"}
+        {login.isPending ? "Logging in…" : "Log in to stillness"}
+        {!login.isPending && <LuArrowRight className="h-4 w-4" aria-hidden />}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">

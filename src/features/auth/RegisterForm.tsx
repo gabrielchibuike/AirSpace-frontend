@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Link, useNavigate } from "react-router-dom"
-import { LuEye, LuEyeOff, LuCircleCheck } from "react-icons/lu"
+import { LuEye, LuEyeOff, LuCircleCheck, LuCircleUserRound } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -55,7 +55,7 @@ export function RegisterForm() {
       )}
 
       <div className="space-y-1.5">
-        <div className="flex items-baseline justify-between">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2">
           <Label htmlFor="reg-email">Email or pseudonymous alias</Label>
           <span className="text-xs text-muted-foreground">Private &amp; optional alias</span>
         </div>
@@ -143,7 +143,8 @@ export function RegisterForm() {
         ) : null}
       </div>
 
-      <Button type="submit" size="lg" className="w-full" disabled={register_.isPending}>
+      <Button type="submit" size="lg" className="w-full gap-2" disabled={register_.isPending}>
+        {!register_.isPending && <LuCircleUserRound className="h-4 w-4" aria-hidden />}
         {register_.isPending ? "Creating your space…" : "Create my space"}
       </Button>
 

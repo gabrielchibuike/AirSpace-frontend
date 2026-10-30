@@ -1,5 +1,6 @@
 import { CrisisDialog } from "@/components/CrisisDialog"
 import { useCrisisResources } from "@/features/vent/hooks"
+import { LuShieldAlert } from "react-icons/lu"
 
 /**
  * One honest crisis strip for every page. The numbers come from the backend
@@ -44,7 +45,8 @@ export function CrisisFooter() {
       <p>
         <CrisisDialog
           trigger={
-            <button className="underline underline-offset-4 hover:no-underline">
+            <button className="inline-flex items-center gap-1 underline underline-offset-4 hover:no-underline">
+              <LuShieldAlert className="h-3.5 w-3.5" aria-hidden />
               See all crisis resources
             </button>
           }
